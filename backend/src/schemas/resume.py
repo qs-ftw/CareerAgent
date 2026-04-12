@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -30,7 +30,7 @@ class ResumeResponse(BaseModel):
     current_version_no: int = 1
     status: str = "draft"
     completeness_score: float = 0.0
-    match_score: Optional[float] = None
+    match_score: float | None = None
     content: ResumeContent = Field(default_factory=ResumeContent)
     created_at: datetime
     updated_at: datetime
@@ -41,5 +41,5 @@ class ResumeResponse(BaseModel):
 class ResumeUpdate(BaseModel):
     """Request body for updating a resume."""
 
-    resume_name: Optional[str] = Field(default=None, min_length=1, max_length=200)
-    content: Optional[ResumeContent] = None
+    resume_name: str | None = Field(default=None, min_length=1, max_length=200)
+    content: ResumeContent | None = None

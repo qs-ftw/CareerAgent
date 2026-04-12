@@ -7,7 +7,7 @@ nodes read/write only the fields relevant to their pipeline.
 
 from __future__ import annotations
 
-from typing import Any, Optional, TypedDict
+from typing import Any, TypedDict
 
 
 class CareerAgentState(TypedDict, total=False):
@@ -26,35 +26,35 @@ class CareerAgentState(TypedDict, total=False):
     # ------------------------------------------------------------------
     # Achievement pipeline
     # ------------------------------------------------------------------
-    achievement_id: Optional[str]
-    achievement_raw: Optional[str]
-    achievement_parsed: Optional[dict[str, Any]]
-    target_roles: Optional[list[dict[str, Any]]]
+    achievement_id: str | None
+    achievement_raw: str | None
+    achievement_parsed: dict[str, Any] | None
+    target_roles: list[dict[str, Any]] | None
 
     # ------------------------------------------------------------------
     # Role initialization pipeline
     # ------------------------------------------------------------------
-    target_role_input: Optional[dict[str, Any]]
-    capability_model: Optional[dict[str, Any]]
+    target_role_input: dict[str, Any] | None
+    capability_model: dict[str, Any] | None
 
     # ------------------------------------------------------------------
     # JD pipeline
     # ------------------------------------------------------------------
-    jd_raw: Optional[str]
-    jd_parsed: Optional[dict[str, Any]]
-    jd_mode: Optional[str]  # "generate_new" | "tune_existing"
-    base_resume_id: Optional[str]
-    career_assets: Optional[dict[str, Any]]  # Pre-loaded achievements, roles, skills
-    base_resume_content: Optional[dict[str, Any]]  # Base resume for tune mode
+    jd_raw: str | None
+    jd_parsed: dict[str, Any] | None
+    jd_mode: str | None  # "generate_new" | "tune_existing"
+    base_resume_id: str | None
+    career_assets: dict[str, Any] | None  # Pre-loaded achievements, roles, skills
+    base_resume_content: dict[str, Any] | None  # Base resume for tune mode
 
     # ------------------------------------------------------------------
     # Shared outputs (written by agent nodes)
     # ------------------------------------------------------------------
-    role_matches: Optional[list[dict[str, Any]]]
+    role_matches: list[dict[str, Any]] | None
     suggestions: list[dict[str, Any]]
     gap_updates: list[dict[str, Any]]
-    resume_draft: Optional[dict[str, Any]]
-    match_scores: Optional[dict[str, Any]]
+    resume_draft: dict[str, Any] | None
+    match_scores: dict[str, Any] | None
 
     # ------------------------------------------------------------------
     # Audit trail

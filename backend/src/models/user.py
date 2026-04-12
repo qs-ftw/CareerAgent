@@ -1,10 +1,7 @@
 """User model."""
 
-import uuid
-from datetime import datetime
 
-from sqlalchemy import String, TIMESTAMP, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.models.base import Base, IDMixin, TimestampMixin

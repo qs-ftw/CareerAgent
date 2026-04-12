@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,11 +26,22 @@ def _to_response(a: Achievement) -> AchievementResponse:
         title=a.title,
         raw_content=a.raw_content or "",
         parsed_summary=a.parsed_summary or None,
-        technical_points=a.technical_points_json if isinstance(a.technical_points_json, list) else [],
-        challenges=a.challenges_json if isinstance(a.challenges_json, list) else [],
-        solutions=a.solutions_json if isinstance(a.solutions_json, list) else [],
-        metrics=a.metrics_json if isinstance(a.metrics_json, list) else [],
-        interview_points=a.interview_points_json if isinstance(a.interview_points_json, list) else [],
+        technical_points=(
+            a.technical_points_json if isinstance(a.technical_points_json, list) else []
+        ),
+        challenges=(
+            a.challenges_json if isinstance(a.challenges_json, list) else []
+        ),
+        solutions=(
+            a.solutions_json if isinstance(a.solutions_json, list) else []
+        ),
+        metrics=(
+            a.metrics_json if isinstance(a.metrics_json, list) else []
+        ),
+        interview_points=(
+            a.interview_points_json
+            if isinstance(a.interview_points_json, list) else []
+        ),
         tags=a.tags_json if isinstance(a.tags_json, list) else [],
         importance_score=a.importance_score,
         created_at=a.created_at,
@@ -166,7 +176,11 @@ async def run_achievement_pipeline(
             ver_result = await session.execute(ver_stmt)
             latest_version = ver_result.scalar_one_or_none()
             if latest_version and latest_version.content_json:
-                resume_content = latest_version.content_json if isinstance(latest_version.content_json, dict) else {}
+                resume_content = (
+                    latest_version.content_json
+                    if isinstance(latest_version.content_json, dict)
+                    else {}
+                )
 
         # Current gaps
         gaps_stmt = select(GapItem).where(
@@ -263,8 +277,14 @@ async def run_achievement_pipeline(
             workspace_id=workspace_id,
             user_id=user_id,
             suggestion_type=suggestion.get("suggestion_type", "resume_update"),
-            target_role_id=uuid.UUID(suggestion["target_role_id"]) if suggestion.get("target_role_id") else None,
-            resume_id=uuid.UUID(suggestion["resume_id"]) if suggestion.get("resume_id") else None,
+            target_role_id=(
+                uuid.UUID(suggestion["target_role_id"])
+                if suggestion.get("target_role_id") else None
+            ),
+            resume_id=(
+                uuid.UUID(suggestion["resume_id"])
+                if suggestion.get("resume_id") else None
+            ),
             source_type="achievement_pipeline",
             source_ref_id=achievement_id,
             title=suggestion.get("title", "Update suggestion"),
@@ -292,8 +312,8 @@ async def run_achievement_pipeline(
                     if gap_update.get("status"):
                         gap.status = gap_update["status"]
                         if gap_update["status"] == "closed":
-                            gap.closed_at = datetime.now(timezone.utc)
-                    gap.updated_at = datetime.now(timezone.utc)
+                            gap.closed_at = datetime.now(UTC)
+                    gap.updated_at = datetime.now(UTC)
             except (ValueError, TypeError):
                 pass
         elif action == "create_gap":
@@ -337,7 +357,7 @@ async def run_achievement_pipeline(
     )
     session.add(agent_run)
 
-    achievement.updated_at = datetime.now(timezone.utc)
+    achievement.updated_at = datetime.now(UTC)
     await session.flush()
     await session.refresh(achievement)
     return _to_response(achievement)

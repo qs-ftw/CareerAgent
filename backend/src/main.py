@@ -1,6 +1,5 @@
 """FastAPI application entry-point."""
 
-import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -18,7 +17,7 @@ async def lifespan(app: FastAPI):
     # Startup: create all tables if they do not exist yet.
     # In production with Alembic migrations you may remove this block.
     import src.models  # noqa: F401 — ensure all models are registered
-    from src.core.database import async_engine, Base
+    from src.core.database import Base, async_engine
 
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

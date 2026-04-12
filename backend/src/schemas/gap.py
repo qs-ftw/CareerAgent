@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -18,7 +18,7 @@ class GapResponse(BaseModel):
     current_state: str = ""
     target_state: str = ""
     evidence: list[dict[str, Any]] = Field(default_factory=list)
-    improvement_plan: Optional[dict[str, Any]] = None
+    improvement_plan: dict[str, Any] | None = None
     progress: float = 0.0
     status: str = "not_started"
     created_at: datetime
@@ -30,5 +30,5 @@ class GapResponse(BaseModel):
 class GapUpdate(BaseModel):
     """Request body for updating a gap."""
 
-    status: Optional[str] = Field(default=None, pattern="^(not_started|in_progress|completed)$")
-    progress: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    status: str | None = Field(default=None, pattern="^(not_started|in_progress|completed)$")
+    progress: float | None = Field(default=None, ge=0.0, le=1.0)

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import uuid
 
@@ -11,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.achievement import Achievement
 from src.models.jd import JDResumeTask, JDSnapshot
-from src.models.resume import Resume, ResumeVersion
+from src.models.resume import ResumeVersion
 from src.models.target_role import TargetRole
 from src.schemas.jd import JDParsedResponse, JDTailorResponse
 from src.schemas.resume import ResumeContent
@@ -145,7 +144,10 @@ async def tailor_jd(
         ver_result = await session.execute(ver_stmt)
         version = ver_result.scalar_one_or_none()
         if version and version.content_json:
-            base_resume_content = version.content_json if isinstance(version.content_json, dict) else {}
+            base_resume_content = (
+                version.content_json
+                if isinstance(version.content_json, dict) else {}
+            )
 
     # 4. Build agent input and invoke pipeline
     agent_input = {
@@ -170,8 +172,20 @@ async def tailor_jd(
         logger.error(f"JD tailoring pipeline failed for task {task.id}: {e}")
         pipeline_result = {
             "jd_parsed": {},
-            "resume_draft": {"summary": "Failed to generate resume.", "skills": [], "experiences": [], "projects": [], "highlights": [], "metrics": [], "interview_points": []},
-            "match_scores": {"ability_match_score": 0.0, "resume_match_score": 0.0, "readiness_score": 0.0, "recommendation": "not_recommended", "missing_items": [], "optimization_notes": []},
+            "resume_draft": {
+                "summary": "Failed to generate resume.",
+                "skills": [], "experiences": [],
+                "projects": [], "highlights": [],
+                "metrics": [], "interview_points": [],
+            },
+            "match_scores": {
+                "ability_match_score": 0.0,
+                "resume_match_score": 0.0,
+                "readiness_score": 0.0,
+                "recommendation": "not_recommended",
+                "missing_items": [],
+                "optimization_notes": [],
+            },
             "agent_logs": [{"node": "pipeline", "error": str(e)}],
         }
 
@@ -199,7 +213,10 @@ async def tailor_jd(
     await session.flush()
 
     # 6. Build response
-    resume_content = ResumeContent(**resume_draft) if isinstance(resume_draft, dict) else ResumeContent()
+    resume_content = (
+        ResumeContent(**resume_draft)
+        if isinstance(resume_draft, dict) else ResumeContent()
+    )
 
     return JDTailorResponse(
         resume=resume_content,
@@ -207,8 +224,14 @@ async def tailor_jd(
         resume_match_score=task.resume_match_score,
         readiness_score=task.readiness_score,
         recommendation=match_scores.get("recommendation", "not_recommended"),
-        missing_items=match_scores.get("missing_items", []) if isinstance(match_scores.get("missing_items"), list) else [],
-        optimization_notes=match_scores.get("optimization_notes", []) if isinstance(match_scores.get("optimization_notes"), list) else [],
+        missing_items=(
+            match_scores.get("missing_items", [])
+            if isinstance(match_scores.get("missing_items"), list) else []
+        ),
+        optimization_notes=(
+            match_scores.get("optimization_notes", [])
+            if isinstance(match_scores.get("optimization_notes"), list) else []
+        ),
     )
 
 

@@ -1,9 +1,8 @@
 """Workspace and WorkspaceMember models."""
 
 import uuid
-from datetime import datetime
 
-from sqlalchemy import String, ForeignKey, TIMESTAMP, func
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 

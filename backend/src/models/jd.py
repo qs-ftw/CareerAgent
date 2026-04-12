@@ -1,10 +1,9 @@
 """JDSnapshot and JDResumeTask models."""
 
 import uuid
-from datetime import datetime
 
-from sqlalchemy import String, Integer, Float, ForeignKey, Text, TIMESTAMP, func
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Float, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.models.base import Base, CommonBase, IDMixin, TimestampMixin
@@ -23,7 +22,9 @@ class JDSnapshot(IDMixin, TimestampMixin, Base):
     raw_jd: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
     parsed_role_name: Mapped[str | None] = mapped_column(String(256), nullable=True, default=None)
     parsed_keywords_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
-    parsed_required_skills_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
+    parsed_required_skills_json: Mapped[dict | None] = mapped_column(
+        JSONB, nullable=True, default=None
+    )
     parsed_bonus_items_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
     parsed_style_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -15,7 +15,7 @@ class AchievementCreate(BaseModel):
     )
     title: str = Field(..., min_length=1, max_length=300, description="Short achievement title")
     raw_content: str = Field(..., min_length=1, description="Raw achievement text")
-    tags: Optional[list[str]] = Field(default=None, description="Optional tags")
+    tags: list[str] | None = Field(default=None, description="Optional tags")
 
 
 class AchievementResponse(BaseModel):
@@ -24,7 +24,7 @@ class AchievementResponse(BaseModel):
     id: UUID
     title: str
     raw_content: str
-    parsed_summary: Optional[str] = None
+    parsed_summary: str | None = None
     technical_points: list[dict[str, Any]] = Field(default_factory=list)
     challenges: list[dict[str, Any]] = Field(default_factory=list)
     solutions: list[dict[str, Any]] = Field(default_factory=list)

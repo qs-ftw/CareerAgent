@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -12,8 +11,8 @@ class SuggestionResponse(BaseModel):
 
     id: UUID
     suggestion_type: str
-    target_role_id: Optional[UUID] = None
-    resume_id: Optional[UUID] = None
+    target_role_id: UUID | None = None
+    resume_id: UUID | None = None
     title: str
     content: str = ""
     impact_score: float = 0.0
@@ -27,4 +26,4 @@ class SuggestionResponse(BaseModel):
 class SuggestionActionRequest(BaseModel):
     """Request body for accepting or rejecting a suggestion."""
 
-    notes: Optional[str] = Field(default=None, max_length=2000, description="Optional user notes")
+    notes: str | None = Field(default=None, max_length=2000, description="Optional user notes")

@@ -58,8 +58,8 @@ async def capability_modeling(state: CareerAgentState) -> dict:
     # Try LLM-based generation
     capability_model = None
     try:
-        from src.core.llm import get_llm
         from src.agent.configuration import AGENT_CONFIGURATION
+        from src.core.llm import get_llm
 
         llm = get_llm("openai", AGENT_CONFIGURATION.resume_init)
         response = await llm.ainvoke(
@@ -81,7 +81,9 @@ async def capability_modeling(state: CareerAgentState) -> dict:
     # Fallback: template-based capability model
     if not capability_model:
         capability_model = {
-            "core_capabilities": required_skills[:8] if required_skills else [f"{role_name} core skill"],
+            "core_capabilities": (
+                required_skills[:8] if required_skills else [f"{role_name} core skill"]
+            ),
             "secondary_capabilities": bonus_skills[:5] if bonus_skills else [],
             "bonus_capabilities": keywords[:5] if keywords else [],
             "project_requirements": [

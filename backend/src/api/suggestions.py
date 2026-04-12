@@ -5,7 +5,6 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_db

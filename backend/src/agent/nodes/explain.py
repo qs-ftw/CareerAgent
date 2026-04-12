@@ -50,8 +50,8 @@ async def explain(state: CareerAgentState) -> dict:
     # Try LLM-based explanation
     explanation = None
     try:
-        from src.core.llm import get_llm
         from src.agent.configuration import AGENT_CONFIGURATION
+        from src.core.llm import get_llm
 
         llm = get_llm("openai", AGENT_CONFIGURATION.explain)
         response = await llm.ainvoke(

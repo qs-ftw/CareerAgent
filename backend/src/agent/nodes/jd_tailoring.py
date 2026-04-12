@@ -84,9 +84,15 @@ async def jd_tailoring(state: CareerAgentState) -> dict:
     ]
 
     if jd_mode == "generate_new" and career_assets:
-        user_parts.append(f"\nCareer Assets:\n{json.dumps(career_assets, ensure_ascii=False, indent=2)}")
+        user_parts.append(
+            f"\nCareer Assets:\n"
+            f"{json.dumps(career_assets, ensure_ascii=False, indent=2)}"
+        )
     elif jd_mode == "tune_existing" and base_resume_content:
-        user_parts.append(f"\nCurrent Resume:\n{json.dumps(base_resume_content, ensure_ascii=False, indent=2)}")
+        user_parts.append(
+            f"\nCurrent Resume:\n"
+            f"{json.dumps(base_resume_content, ensure_ascii=False, indent=2)}"
+        )
 
     user_prompt = "\n".join(user_parts)
     system_prompt = _SYSTEM_PROMPT.format(mode_instruction=mode_instruction)
@@ -94,8 +100,8 @@ async def jd_tailoring(state: CareerAgentState) -> dict:
     # Try LLM-based tailoring
     result = None
     try:
-        from src.core.llm import get_llm
         from src.agent.configuration import AGENT_CONFIGURATION
+        from src.core.llm import get_llm
 
         llm = get_llm("openai", AGENT_CONFIGURATION.jd_tailoring)
         response = await llm.ainvoke(
@@ -124,7 +130,11 @@ async def jd_tailoring(state: CareerAgentState) -> dict:
                 user_skills.update(s.lower() for s in role.get("required_skills", []))
 
         matched_skills = [s for s in required_skills if s.lower() in user_skills]
-        ability_score = min(1.0, len(matched_skills) / max(1, len(required_skills))) if required_skills else 0.5
+        ability_score = (
+            min(1.0, len(matched_skills) / max(1, len(required_skills)))
+            if required_skills
+            else 0.5
+        )
 
         resume = base_resume_content if jd_mode == "tune_existing" and base_resume_content else {
             "summary": f"Experienced software engineer with relevant skills for {role_name}.",

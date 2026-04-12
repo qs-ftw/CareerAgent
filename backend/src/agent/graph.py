@@ -8,16 +8,16 @@ from __future__ import annotations
 
 from langgraph.graph import END, StateGraph
 
-from src.agent.state import CareerAgentState
 from src.agent.nodes.achievement_analysis import achievement_analysis
 from src.agent.nodes.capability_modeling import capability_modeling
-from src.agent.nodes.resume_init import resume_init
+from src.agent.nodes.explain import explain
 from src.agent.nodes.gap_evaluation import gap_evaluation
-from src.agent.nodes.role_matching import role_matching
-from src.agent.nodes.resume_update import resume_update
 from src.agent.nodes.jd_parsing import jd_parsing
 from src.agent.nodes.jd_tailoring import jd_tailoring
-from src.agent.nodes.explain import explain
+from src.agent.nodes.resume_init import resume_init
+from src.agent.nodes.resume_update import resume_update
+from src.agent.nodes.role_matching import role_matching
+from src.agent.state import CareerAgentState
 
 
 def build_achievement_pipeline() -> StateGraph:

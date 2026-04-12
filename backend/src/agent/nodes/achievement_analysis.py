@@ -41,8 +41,8 @@ async def achievement_analysis(state: CareerAgentState) -> dict:
     # Try LLM-based analysis
     parsed = None
     try:
-        from src.core.llm import get_llm
         from src.agent.configuration import AGENT_CONFIGURATION
+        from src.core.llm import get_llm
 
         llm = get_llm("openai", AGENT_CONFIGURATION.achievement_analysis)
         response = await llm.ainvoke(

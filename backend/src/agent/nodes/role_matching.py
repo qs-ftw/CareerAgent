@@ -69,8 +69,8 @@ async def role_matching(state: CareerAgentState) -> dict:
     # Try LLM-based matching
     role_matches = None
     try:
-        from src.core.llm import get_llm
         from src.agent.configuration import AGENT_CONFIGURATION
+        from src.core.llm import get_llm
 
         llm = get_llm("openai", AGENT_CONFIGURATION.role_matching)
         response = await llm.ainvoke(

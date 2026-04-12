@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -17,7 +17,7 @@ class JDInput(BaseModel):
         pattern="^(generate_new|tune_existing)$",
         description="generate_new creates from scratch; tune_existing adapts a base resume",
     )
-    base_resume_id: Optional[UUID] = Field(
+    base_resume_id: UUID | None = Field(
         default=None, description="Required when mode=tune_existing"
     )
 

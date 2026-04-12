@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -241,7 +241,7 @@ async def update_role(
     if "source_jd" in update_map:
         role.source_jd_summary = update_map["source_jd"]
 
-    role.updated_at = datetime.now(timezone.utc)
+    role.updated_at = datetime.now(UTC)
 
     await session.flush()
     await session.refresh(role)
@@ -264,7 +264,7 @@ async def delete_role(
     if role is None:
         return False
 
-    role.deleted_at = datetime.now(timezone.utc)
+    role.deleted_at = datetime.now(UTC)
     role.status = "deleted"
 
     await session.flush()

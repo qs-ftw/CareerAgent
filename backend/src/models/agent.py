@@ -1,10 +1,9 @@
 """AgentRun and UpdateSuggestion audit models."""
 
 import uuid
-from datetime import datetime
 
-from sqlalchemy import String, Integer, Float, ForeignKey, Text, TIMESTAMP, func
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.models.base import Base, CommonBase, IDMixin, TimestampMixin
@@ -21,9 +20,15 @@ class AgentRun(CommonBase):
     )
     run_type: Mapped[str] = mapped_column(String(64), nullable=False)
     source_type: Mapped[str | None] = mapped_column(String(64), nullable=True, default=None)
-    source_ref_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, default=None)
-    input_payload_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
-    output_payload_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
+    source_ref_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True, default=None
+    )
+    input_payload_json: Mapped[dict | None] = mapped_column(
+        JSONB, nullable=True, default=None
+    )
+    output_payload_json: Mapped[dict | None] = mapped_column(
+        JSONB, nullable=True, default=None
+    )
     explainability_notes: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
     review_status: Mapped[str] = mapped_column(
         String(32), nullable=False, default="pending",
@@ -52,7 +57,9 @@ class UpdateSuggestion(IDMixin, TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("resumes.id"), nullable=True, default=None,
     )
     source_type: Mapped[str | None] = mapped_column(String(64), nullable=True, default=None)
-    source_ref_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, default=None)
+    source_ref_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True, default=None
+    )
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     content_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
     impact_score_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)

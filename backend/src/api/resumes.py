@@ -5,11 +5,11 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_db
-from src.core.security import get_current_user_id, get_current_workspace_id
+from src.core.security import get_current_user_id
 from src.schemas.resume import ResumeResponse, ResumeUpdate
 from src.services import resume_service
 

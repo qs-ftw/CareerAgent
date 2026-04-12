@@ -40,7 +40,10 @@ async def resume_init(state: CareerAgentState) -> dict:
     # Build prompt from capability model
     user_parts = [f"Role: {role_name}"]
     if capability_model:
-        user_parts.append(f"\nCapability Model:\n{json.dumps(capability_model, ensure_ascii=False, indent=2)}")
+        user_parts.append(
+            f"\nCapability Model:\n"
+            f"{json.dumps(capability_model, ensure_ascii=False, indent=2)}"
+        )
 
     required_skills = role_input.get("required_skills", [])
     if required_skills:
@@ -51,8 +54,8 @@ async def resume_init(state: CareerAgentState) -> dict:
     # Try LLM-based generation
     resume_draft = None
     try:
-        from src.core.llm import get_llm
         from src.agent.configuration import AGENT_CONFIGURATION
+        from src.core.llm import get_llm
 
         llm = get_llm("openai", AGENT_CONFIGURATION.resume_init)
         response = await llm.ainvoke(

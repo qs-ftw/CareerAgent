@@ -1,10 +1,9 @@
 """TargetRole and RoleCapabilityModel."""
 
 import uuid
-from datetime import datetime
 
-from sqlalchemy import String, Integer, Float, ForeignKey, Text, TIMESTAMP, func
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.models.base import CommonBase
@@ -39,7 +38,13 @@ class RoleCapabilityModel(CommonBase):
         UUID(as_uuid=True), ForeignKey("target_roles.id"), nullable=False, index=True,
     )
     core_capabilities_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
-    secondary_capabilities_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
-    bonus_capabilities_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
-    project_requirements_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
+    secondary_capabilities_json: Mapped[dict | None] = mapped_column(
+        JSONB, nullable=True, default=None
+    )
+    bonus_capabilities_json: Mapped[dict | None] = mapped_column(
+        JSONB, nullable=True, default=None
+    )
+    project_requirements_json: Mapped[dict | None] = mapped_column(
+        JSONB, nullable=True, default=None
+    )
     evaluation_rules_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)

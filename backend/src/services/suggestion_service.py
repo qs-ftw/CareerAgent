@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -95,7 +95,7 @@ async def accept_suggestion(
         return None
 
     suggestion.status = "accepted"
-    suggestion.updated_at = datetime.now(timezone.utc)
+    suggestion.updated_at = datetime.now(UTC)
     await session.flush()
     await session.refresh(suggestion)
     return _to_response(suggestion)
@@ -118,7 +118,7 @@ async def reject_suggestion(
         return None
 
     suggestion.status = "rejected"
-    suggestion.updated_at = datetime.now(timezone.utc)
+    suggestion.updated_at = datetime.now(UTC)
     await session.flush()
     await session.refresh(suggestion)
     return _to_response(suggestion)

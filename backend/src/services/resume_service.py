@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -128,7 +128,11 @@ async def update_resume(
         if isinstance(new_content, dict):
             content_payload = new_content
         else:
-            content_payload = new_content if isinstance(new_content, dict) else ResumeContent(**new_content).model_dump()
+            content_payload = (
+                new_content
+                if isinstance(new_content, dict)
+                else ResumeContent(**new_content).model_dump()
+            )
 
         # Fetch the current latest version to determine the next version number.
         ver_result = await session.execute(_latest_version_stmt(resume.id))
@@ -149,7 +153,7 @@ async def update_resume(
         resume.current_version_no = next_version_no
 
     # Touch updated_at.
-    resume.updated_at = datetime.now(timezone.utc)
+    resume.updated_at = datetime.now(UTC)
 
     await session.flush()
     await session.refresh(resume)

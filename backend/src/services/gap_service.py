@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -78,11 +78,11 @@ async def update_gap(
     if "status" in update_map:
         gap.status = update_map["status"]
         if update_map["status"] == "closed":
-            gap.closed_at = datetime.now(timezone.utc)
+            gap.closed_at = datetime.now(UTC)
     if "progress" in update_map:
         gap.progress = update_map["progress"]
 
-    gap.updated_at = datetime.now(timezone.utc)
+    gap.updated_at = datetime.now(UTC)
     await session.flush()
     await session.refresh(gap)
     return _to_response(gap)

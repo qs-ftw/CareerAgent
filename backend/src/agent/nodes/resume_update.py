@@ -67,17 +67,20 @@ async def resume_update(state: CareerAgentState) -> dict:
 
         # Build prompt for this role
         user_prompt = (
-            f"Parsed achievement:\n{json.dumps(achievement_parsed, ensure_ascii=False, indent=2)}\n\n"
+            f"Parsed achievement:\n"
+            f"{json.dumps(achievement_parsed, ensure_ascii=False, indent=2)}\n\n"
             f"Target role: {role_name}\n"
-            f"Required skills: {', '.join(role_data.get('required_skills', []))}\n\n"
-            f"Current resume content:\n{json.dumps(role_data.get('resume_content', {}), ensure_ascii=False, indent=2)}"
+            f"Required skills: "
+            f"{', '.join(role_data.get('required_skills', []))}\n\n"
+            f"Current resume content:\n"
+            f"{json.dumps(role_data.get('resume_content', {}), ensure_ascii=False, indent=2)}"
         )
 
         # Try LLM-based suggestion generation
         suggestions = None
         try:
-            from src.core.llm import get_llm
             from src.agent.configuration import AGENT_CONFIGURATION
+            from src.core.llm import get_llm
 
             llm = get_llm("openai", AGENT_CONFIGURATION.resume_update)
             response = await llm.ainvoke(

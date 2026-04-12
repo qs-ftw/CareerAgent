@@ -102,17 +102,23 @@ async def _gap_evaluation_role_init(state: CareerAgentState) -> dict:
     # Build prompt
     user_parts = [f"Role: {role_name}"]
     if capability_model:
-        user_parts.append(f"\nCapability Model:\n{json.dumps(capability_model, ensure_ascii=False, indent=2)}")
+        user_parts.append(
+            f"\nCapability Model:\n"
+            f"{json.dumps(capability_model, ensure_ascii=False, indent=2)}"
+        )
     if resume_draft:
-        user_parts.append(f"\nCurrent Resume:\n{json.dumps(resume_draft, ensure_ascii=False, indent=2)}")
+        user_parts.append(
+            f"\nCurrent Resume:\n"
+            f"{json.dumps(resume_draft, ensure_ascii=False, indent=2)}"
+        )
 
     user_prompt = "\n".join(user_parts)
 
     # Try LLM-based gap generation
     gap_items = None
     try:
-        from src.core.llm import get_llm
         from src.agent.configuration import AGENT_CONFIGURATION
+        from src.core.llm import get_llm
 
         llm = get_llm("openai", AGENT_CONFIGURATION.gap_evaluation)
         response = await llm.ainvoke(
@@ -212,8 +218,8 @@ async def _gap_evaluation_achievement(state: CareerAgentState) -> dict:
         # Try LLM-based gap evaluation
         gap_updates = None
         try:
-            from src.core.llm import get_llm
             from src.agent.configuration import AGENT_CONFIGURATION
+            from src.core.llm import get_llm
 
             llm = get_llm("openai", AGENT_CONFIGURATION.gap_evaluation)
             response = await llm.ainvoke(
@@ -229,7 +235,10 @@ async def _gap_evaluation_achievement(state: CareerAgentState) -> dict:
                 content = content.split("```")[1].split("```")[0]
             gap_updates = json.loads(content.strip())
         except Exception as e:
-            logger.info(f"LLM gap evaluation (achievement) failed for {role_name} ({e}), using fallback")
+            logger.info(
+                f"LLM gap evaluation (achievement) failed for "
+                f"{role_name} ({e}), using fallback"
+            )
 
         # Fallback: bump progress on gaps related to achievement tags
         if not gap_updates:

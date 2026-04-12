@@ -1,10 +1,9 @@
 """SkillEntity model."""
 
 import uuid
-from datetime import datetime
 
-from sqlalchemy import String, Float, ForeignKey, TIMESTAMP, func
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Float, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.models.base import Base, IDMixin, TimestampMixin
