@@ -107,3 +107,52 @@ async def delete_role(
     deleted = await role_service.delete_role(db, user_id, role_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Role not found")
+
+
+@router.post(
+    "/{role_id}/init",
+    response_model=RoleResponse,
+    summary="Initialize role assets (resume + gaps)",
+)
+async def init_role_assets(
+    role_id: uuid.UUID = Path(..., description="The role UUID"),
+    db: AsyncSession = Depends(get_db),
+) -> RoleResponse:
+    """Generate resume and gap analysis for an existing role."""
+    import logging as _logging
+
+    user_id = await get_current_user_id()
+    workspace_id = await get_current_workspace_id()
+    role = await role_service.get_role(db, user_id, role_id)
+    if role is None:
+        raise HTTPException(status_code=404, detail="Role not found")
+
+    from src.schemas.role import RoleCreate
+
+    data = RoleCreate(
+        role_name=role.role_name,
+        role_type=role.role_type,
+        description=role.description or "",
+        required_skills=role.required_skills,
+        bonus_skills=role.bonus_skills,
+        keywords=role.keywords,
+    )
+    try:
+        await role_service.initialize_role_assets(
+            db, user_id, workspace_id, role_id, data
+        )
+    except Exception as e:
+        _logging.getLogger(__name__).error(
+            f"Agent init failed for role {role_id}: {e}"
+        )
+
+    await session_refresh(db, role_id)
+    role = await role_service.get_role(db, user_id, role_id)
+    if role is None:
+        raise HTTPException(status_code=404, detail="Role not found")
+    return role
+
+
+async def session_refresh(db: AsyncSession, role_id: uuid.UUID):
+    """No-op — ensure session is flushed."""
+    await db.flush()

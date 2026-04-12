@@ -25,6 +25,7 @@ export const roleApi = {
   create: (data: unknown) => apiClient.post("/roles", data),
   update: (id: string, data: unknown) => apiClient.patch(`/roles/${id}`, data),
   delete: (id: string) => apiClient.delete(`/roles/${id}`),
+  init: (id: string) => apiClient.post(`/roles/${id}/init`),
 };
 
 // ── Resume APIs ────────────────────────────────────────

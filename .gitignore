@@ -60,6 +60,6 @@ backend/alembic/versions/__pycache__/
 # LangGraph
 .langgraph/
 
-# Claude
 .claude/
 prd.md
+config.yaml

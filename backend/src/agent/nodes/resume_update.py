@@ -79,10 +79,9 @@ async def resume_update(state: CareerAgentState) -> dict:
         # Try LLM-based suggestion generation
         suggestions = None
         try:
-            from src.agent.configuration import AGENT_CONFIGURATION
             from src.core.llm import get_llm
 
-            llm = get_llm("openai", AGENT_CONFIGURATION.resume_update)
+            llm = get_llm("resume_update")
             response = await llm.ainvoke(
                 [
                     {"role": "system", "content": _SYSTEM_PROMPT},

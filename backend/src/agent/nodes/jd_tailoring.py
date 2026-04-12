@@ -100,10 +100,9 @@ async def jd_tailoring(state: CareerAgentState) -> dict:
     # Try LLM-based tailoring
     result = None
     try:
-        from src.agent.configuration import AGENT_CONFIGURATION
         from src.core.llm import get_llm
 
-        llm = get_llm("openai", AGENT_CONFIGURATION.jd_tailoring)
+        llm = get_llm("jd_tailoring")
         response = await llm.ainvoke(
             [
                 {"role": "system", "content": system_prompt},

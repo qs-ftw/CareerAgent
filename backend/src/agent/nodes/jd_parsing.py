@@ -44,10 +44,9 @@ async def jd_parsing(state: CareerAgentState) -> dict:
     # Try LLM-based parsing
     parsed = None
     try:
-        from src.agent.configuration import AGENT_CONFIGURATION
         from src.core.llm import get_llm
 
-        llm = get_llm("openai", AGENT_CONFIGURATION.jd_parsing)
+        llm = get_llm("jd_parsing")
         response = await llm.ainvoke(
             [
                 {"role": "system", "content": _SYSTEM_PROMPT},

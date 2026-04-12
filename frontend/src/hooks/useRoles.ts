@@ -66,3 +66,18 @@ export function useDeleteRole() {
     },
   });
 }
+
+export function useInitRoleAssets() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await roleApi.init(id);
+      return res.data;
+    },
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ["roles", id] });
+      queryClient.invalidateQueries({ queryKey: ["resumes"] });
+      queryClient.invalidateQueries({ queryKey: ["resumes", "role", id] });
+    },
+  });
+}

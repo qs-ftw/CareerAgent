@@ -2,6 +2,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { resumeApi } from "@/lib/api";
 import type { Resume, ResumeContent, ResumeVersion, PaginatedResponse } from "@/types";
 
+export function useListResumes() {
+  return useQuery<Resume[]>({
+    queryKey: ["resumes"],
+    queryFn: async () => {
+      const { data } = await resumeApi.list();
+      return data;
+    },
+  });
+}
+
 export function useResume(id: string) {
   return useQuery<Resume>({
     queryKey: ["resumes", id],

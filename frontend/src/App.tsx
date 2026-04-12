@@ -8,6 +8,7 @@ import { ResumeDetail } from "@/pages/ResumeDetail";
 import { Achievements } from "@/pages/Achievements";
 import { GapBoard } from "@/pages/GapBoard";
 import { JDTailor } from "@/pages/JDTailor";
+import { Resumes } from "@/pages/Resumes";
 import { Suggestions } from "@/pages/Suggestions";
 
 const queryClient = new QueryClient({
@@ -30,6 +31,7 @@ export default function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/roles" element={<Roles />} />
               <Route path="/roles/:id" element={<RoleDetail />} />
+              <Route path="/resumes" element={<Resumes />} />
               <Route path="/resumes/:id" element={<ResumeDetail />} />
               <Route path="/achievements" element={<Achievements />} />
               <Route path="/gaps" element={<GapBoard />} />

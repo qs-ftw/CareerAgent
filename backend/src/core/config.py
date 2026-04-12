@@ -7,10 +7,6 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5433/careeragent"
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    OPENAI_API_KEY: str = ""
-    ANTHROPIC_API_KEY: str = ""
-    GEMINI_API_KEY: str = ""
-
     LANGSMITH_API_KEY: str = ""
     LANGSMITH_TRACING: bool = False
     LANGSMITH_PROJECT: str = "careeragent"

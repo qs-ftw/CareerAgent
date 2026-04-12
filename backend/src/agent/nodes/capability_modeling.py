@@ -58,10 +58,9 @@ async def capability_modeling(state: CareerAgentState) -> dict:
     # Try LLM-based generation
     capability_model = None
     try:
-        from src.agent.configuration import AGENT_CONFIGURATION
         from src.core.llm import get_llm
 
-        llm = get_llm("openai", AGENT_CONFIGURATION.resume_init)
+        llm = get_llm("capability_modeling")
         response = await llm.ainvoke(
             [
                 {"role": "system", "content": _SYSTEM_PROMPT},

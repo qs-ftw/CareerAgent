@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { useRole, useDeleteRole } from "@/hooks/useRoles";
+import { useRole, useDeleteRole, useInitRoleAssets } from "@/hooks/useRoles";
 import { useRoleResume } from "@/hooks/useResumes";
 import {
   ChevronRight,
@@ -25,6 +25,7 @@ export function RoleDetail() {
   const { data: role, isLoading, isError } = useRole(id ?? "");
   const { data: resume } = useRoleResume(id ?? "");
   const deleteRole = useDeleteRole();
+  const initAssets = useInitRoleAssets();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -243,8 +244,19 @@ export function RoleDetail() {
                 <div className="text-center py-6">
                   <FileText className="mx-auto h-10 w-10 text-muted-foreground/40" />
                   <p className="mt-2 text-sm text-muted-foreground">暂无简历</p>
-                  <button className="mt-3 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
-                    生成简历
+                  <button
+                    onClick={() => initAssets.mutate(id ?? "")}
+                    disabled={initAssets.isPending}
+                    className="mt-3 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  >
+                    {initAssets.isPending ? (
+                      <span className="flex items-center gap-1.5">
+                        <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                        生成中...
+                      </span>
+                    ) : (
+                      "生成简历"
+                    )}
                   </button>
                 </div>
               )}

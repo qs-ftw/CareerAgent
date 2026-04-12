@@ -117,10 +117,9 @@ async def _gap_evaluation_role_init(state: CareerAgentState) -> dict:
     # Try LLM-based gap generation
     gap_items = None
     try:
-        from src.agent.configuration import AGENT_CONFIGURATION
         from src.core.llm import get_llm
 
-        llm = get_llm("openai", AGENT_CONFIGURATION.gap_evaluation)
+        llm = get_llm("gap_evaluation")
         response = await llm.ainvoke(
             [
                 {"role": "system", "content": _ROLE_INIT_PROMPT},
@@ -218,10 +217,9 @@ async def _gap_evaluation_achievement(state: CareerAgentState) -> dict:
         # Try LLM-based gap evaluation
         gap_updates = None
         try:
-            from src.agent.configuration import AGENT_CONFIGURATION
             from src.core.llm import get_llm
 
-            llm = get_llm("openai", AGENT_CONFIGURATION.gap_evaluation)
+            llm = get_llm("gap_evaluation")
             response = await llm.ainvoke(
                 [
                     {"role": "system", "content": _ACHIEVEMENT_GAP_PROMPT},

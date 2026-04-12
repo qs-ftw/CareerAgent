@@ -54,10 +54,9 @@ async def resume_init(state: CareerAgentState) -> dict:
     # Try LLM-based generation
     resume_draft = None
     try:
-        from src.agent.configuration import AGENT_CONFIGURATION
         from src.core.llm import get_llm
 
-        llm = get_llm("openai", AGENT_CONFIGURATION.resume_init)
+        llm = get_llm("resume_init")
         response = await llm.ainvoke(
             [
                 {"role": "system", "content": _SYSTEM_PROMPT},
