@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useProfile, useProfileCompleteness, useUpsertProfile } from "@/hooks/useProfile";
 import type { ProfileUpsertRequest } from "@/types";
 
@@ -8,17 +8,33 @@ export function Profile() {
   const upsert = useUpsertProfile();
 
   const [form, setForm] = useState<ProfileUpsertRequest>({
-    headline: profile?.headline ?? "",
-    exit_story: profile?.exit_story ?? "",
-    superpowers: profile?.superpowers ?? [],
-    proof_points: profile?.proof_points ?? [],
-    compensation: profile?.compensation ?? {},
-    location: profile?.location ?? {},
-    preferences: profile?.preferences ?? {},
-    constraints: profile?.constraints ?? {},
+    headline: "",
+    exit_story: "",
+    superpowers: [],
+    proof_points: [],
+    compensation: {},
+    location: {},
+    preferences: {},
+    constraints: {},
   });
 
   const [superInput, setSuperInput] = useState("");
+
+  // Sync form when profile data loads
+  useEffect(() => {
+    if (profile) {
+      setForm({
+        headline: profile.headline ?? "",
+        exit_story: profile.exit_story ?? "",
+        superpowers: profile.superpowers ?? [],
+        proof_points: profile.proof_points ?? [],
+        compensation: profile.compensation ?? {},
+        location: profile.location ?? {},
+        preferences: profile.preferences ?? {},
+        constraints: profile.constraints ?? {},
+      });
+    }
+  }, [profile]);
 
   if (isLoading) {
     return <div className="p-6 text-muted-foreground">加载中...</div>;

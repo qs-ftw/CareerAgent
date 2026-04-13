@@ -73,25 +73,25 @@ export function StoryBank() {
               </div>
               {story.story_json && (
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  {story.story_json.situation && (
+                  {Boolean(story.story_json.situation) && (
                     <div>
                       <span className="font-medium text-muted-foreground">情境: </span>
                       {String(story.story_json.situation).slice(0, 100)}
                     </div>
                   )}
-                  {story.story_json.task && (
+                  {Boolean(story.story_json.task) && (
                     <div>
                       <span className="font-medium text-muted-foreground">任务: </span>
                       {String(story.story_json.task).slice(0, 100)}
                     </div>
                   )}
-                  {story.story_json.action && (
+                  {Boolean(story.story_json.action) && (
                     <div>
                       <span className="font-medium text-muted-foreground">行动: </span>
                       {String(story.story_json.action).slice(0, 100)}
                     </div>
                   )}
-                  {story.story_json.result && (
+                  {Boolean(story.story_json.result) && (
                     <div>
                       <span className="font-medium text-muted-foreground">结果: </span>
                       {String(story.story_json.result).slice(0, 100)}

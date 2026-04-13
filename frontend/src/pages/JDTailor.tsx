@@ -29,10 +29,10 @@ function ReviewReport({ artifact }: { artifact: JDReviewArtifact }) {
         <div>
           <p className="text-sm font-medium text-muted-foreground">岗位概况</p>
           <p className="mt-1 text-sm">
-            {(artifact.role_summary as Record<string, unknown>).title && String((artifact.role_summary as Record<string, unknown>).title)}
-            {(artifact.role_summary as Record<string, unknown>).level && ` · ${(artifact.role_summary as Record<string, unknown>).level as string}级`}
+            {Boolean((artifact.role_summary as Record<string, unknown>).title) && String((artifact.role_summary as Record<string, unknown>).title)}
+            {Boolean((artifact.role_summary as Record<string, unknown>).level) && ` · ${String((artifact.role_summary as Record<string, unknown>).level)}级`}
           </p>
-          {(artifact.role_summary as Record<string, unknown>).core_responsibilities && (
+          {Boolean((artifact.role_summary as Record<string, unknown>).core_responsibilities) && (
             <ul className="mt-1 space-y-0.5 text-sm text-muted-foreground">
               {((artifact.role_summary as Record<string, unknown>).core_responsibilities as string[] || []).map((r, i) => (
                 <li key={i}>• {r}</li>
@@ -56,7 +56,7 @@ function ReviewReport({ artifact }: { artifact: JDReviewArtifact }) {
                 </span>
                 <div>
                   <span>{String(g.gap || "")}</span>
-                  {g.suggested_action && <span className="text-muted-foreground"> — {String(g.suggested_action)}</span>}
+                  {Boolean(g.suggested_action) && <span className="text-muted-foreground"> — {String(g.suggested_action)}</span>}
                 </div>
               </div>
             ))}
@@ -66,7 +66,7 @@ function ReviewReport({ artifact }: { artifact: JDReviewArtifact }) {
 
       {/* Key Strengths & Concerns */}
       <div className="grid grid-cols-2 gap-4">
-        {rec.key_strengths && (rec.key_strengths as string[]).length > 0 && (
+        {Boolean(rec.key_strengths) && (rec.key_strengths as string[]).length > 0 && (
           <div>
             <p className="text-sm font-medium text-green-700">核心优势</p>
             <ul className="mt-1 space-y-0.5 text-sm">
@@ -74,7 +74,7 @@ function ReviewReport({ artifact }: { artifact: JDReviewArtifact }) {
             </ul>
           </div>
         )}
-        {rec.key_concerns && (rec.key_concerns as string[]).length > 0 && (
+        {Boolean(rec.key_concerns) && (rec.key_concerns as string[]).length > 0 && (
           <div>
             <p className="text-sm font-medium text-red-700">主要顾虑</p>
             <ul className="mt-1 space-y-0.5 text-sm">
@@ -92,7 +92,7 @@ function ReviewReport({ artifact }: { artifact: JDReviewArtifact }) {
             {(artifact.interview_plan as Record<string, unknown>[]).map((item, i) => (
               <div key={i} className="text-sm">
                 <span className="font-medium">{String(item.topic || "")}</span>
-                {item.preparation_notes && <span className="text-muted-foreground"> — {String(item.preparation_notes)}</span>}
+                {Boolean(item.preparation_notes) && <span className="text-muted-foreground"> — {String(item.preparation_notes)}</span>}
               </div>
             ))}
           </div>
