@@ -99,4 +99,6 @@ export const storyApi = {
 export const dashboardApi = {
   stats: () => apiClient.get("/dashboard/stats"),
   recentJdDecisions: () => apiClient.get("/dashboard/recent-jd-decisions"),
+  roleSummaries: () => apiClient.get("/dashboard/role-summaries"),
+  highPriorityGaps: () => apiClient.get("/dashboard/high-priority-gaps"),
 };

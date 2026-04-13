@@ -242,3 +242,25 @@ export interface JDRecentDecision {
   resume_match_score: number;
   created_at: string;
 }
+
+export interface RoleSummary {
+  id: string;
+  role_name: string;
+  role_type: string;
+  status: string;
+  priority: number;
+  completeness_score: number;
+  match_score: number;
+  gap_count: number;
+  updated_at: string;
+}
+
+export interface GapSummary {
+  id: string;
+  skill_name: string;
+  gap_type: string;
+  priority: number;
+  status: string;
+  progress: number;
+  target_role_id: string;
+}
