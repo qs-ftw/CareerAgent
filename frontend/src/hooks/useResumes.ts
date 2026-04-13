@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { resumeApi } from "@/lib/api";
-import type { Resume, ResumeContent, ResumeVersion, PaginatedResponse } from "@/types";
+import type { Resume, ResumeContent, ResumeVersion } from "@/types";
 
 export function useListResumes() {
   return useQuery<Resume[]>({
@@ -28,8 +28,8 @@ export function useRoleResume(roleId: string) {
     queryKey: ["resumes", "role", roleId],
     queryFn: async () => {
       const { data } = await resumeApi.list({ target_role_id: roleId });
-      const resp = data as PaginatedResponse<Resume>;
-      return resp.items?.[0] ?? null;
+      const list = Array.isArray(data) ? data : [];
+      return list[0] ?? null;
     },
     enabled: !!roleId,
   });
@@ -56,5 +56,17 @@ export function useResumeVersions(id: string) {
       return data;
     },
     enabled: !!id,
+  });
+}
+
+export function useDeleteVersion(resumeId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (versionId: string) => {
+      await resumeApi.deleteVersion(resumeId, versionId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["resumes", resumeId, "versions"] });
+    },
   });
 }

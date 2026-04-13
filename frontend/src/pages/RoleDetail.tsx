@@ -233,12 +233,21 @@ export function RoleDetail() {
                       {resume.completeness_score}% | 匹配度 {resume.match_score}%
                     </p>
                   </div>
-                  <button
-                    onClick={() => navigate(`/resumes/${resume.id}`)}
-                    className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-                  >
-                    查看简历
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => initAssets.mutate(id ?? "")}
+                      disabled={initAssets.isPending}
+                      className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:opacity-50 transition-colors"
+                    >
+                      {initAssets.isPending ? "生成中..." : "重新生成"}
+                    </button>
+                    <button
+                      onClick={() => navigate(`/resumes/${resume.id}`)}
+                      className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                    >
+                      查看简历
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-6">

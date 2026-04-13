@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { useResume, useUpdateResume, useResumeVersions } from "@/hooks/useResumes";
+import { useResume, useUpdateResume, useResumeVersions, useDeleteVersion } from "@/hooks/useResumes";
 import type { ResumeContent } from "@/types";
 import {
   Loader2,
@@ -25,6 +25,7 @@ import {
   GitBranch,
   Clock,
   Info,
+  Trash2,
 } from "lucide-react";
 
 // ── Main Component ────────────────────────────────────
@@ -178,7 +179,7 @@ export function ResumeDetail() {
               </h3>
               <div className="mt-4">
                 {versions && versions.length > 0 ? (
-                  <VersionTimeline versions={versions} />
+                  <VersionTimeline versions={versions} resumeId={resume.id} />
                 ) : (
                   <div className="py-6 text-center">
                     <GitBranch className="mx-auto h-8 w-8 text-muted-foreground/40" />
@@ -933,53 +934,104 @@ function InterviewPointsSection({ resume }: { resume: { id: string; content: Res
 
 // ── Version Timeline ──────────────────────────────────
 
-function VersionTimeline({ versions }: { versions: { version_no: number; created_at: string; source_type: string; summary_note?: string; generated_by: string }[] }) {
+function VersionTimeline({ versions, resumeId }: {
+  versions: { id?: string; version_no: number; created_at: string; source_type: string; summary_note?: string; generated_by: string }[];
+  resumeId: string;
+}) {
   const sorted = [...versions].sort((a, b) => b.version_no - a.version_no);
+  const latestVersionNo = sorted[0]?.version_no;
+  const deleteVersion = useDeleteVersion(resumeId);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   return (
     <div className="relative space-y-0">
-      {sorted.map((v, idx) => (
-        <div key={v.version_no} className="relative flex gap-3 pb-4">
-          {/* Timeline line */}
-          {idx < sorted.length - 1 && (
-            <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />
-          )}
-          {/* Timeline dot */}
-          <div className="mt-1 shrink-0">
-            <div className="h-[22px] w-[22px] rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center">
-              <div className="h-2 w-2 rounded-full bg-primary" />
-            </div>
-          </div>
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">v{v.version_no}</span>
-              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                {sourceTypeLabel(v.source_type)}
-              </span>
-            </div>
-            <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {formatDate(v.created_at)}
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <GitBranch className="h-3 w-3" />
-                {v.generated_by === "user"
-                  ? "用户"
-                  : v.generated_by === "agent"
-                    ? "AI 生成"
-                    : "混合"}
-              </span>
-            </div>
-            {v.summary_note && (
-              <p className="mt-1 text-xs text-muted-foreground truncate">
-                {v.summary_note}
-              </p>
+      {sorted.map((v, idx) => {
+        const isLatest = v.version_no === latestVersionNo;
+        const versionId = (v as Record<string, unknown>).id as string | undefined;
+        const showDelete = !isLatest && versionId;
+        const confirmingDelete = confirmDeleteId === versionId;
+
+        return (
+          <div key={v.version_no} className="relative flex gap-3 pb-4">
+            {/* Timeline line */}
+            {idx < sorted.length - 1 && (
+              <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />
             )}
+            {/* Timeline dot */}
+            <div className="mt-1 shrink-0">
+              <div className="h-[22px] w-[22px] rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center">
+                <div className="h-2 w-2 rounded-full bg-primary" />
+              </div>
+            </div>
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">v{v.version_no}</span>
+                <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                  {sourceTypeLabel(v.source_type)}
+                </span>
+                {isLatest && (
+                  <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
+                    当前版本
+                  </span>
+                )}
+              </div>
+              <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {formatDate(v.created_at)}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <GitBranch className="h-3 w-3" />
+                  {v.generated_by === "user"
+                    ? "用户"
+                    : v.generated_by === "agent"
+                      ? "AI 生成"
+                      : "混合"}
+                </span>
+              </div>
+              {v.summary_note && (
+                <p className="mt-1 text-xs text-muted-foreground truncate">
+                  {v.summary_note}
+                </p>
+              )}
+              {showDelete && (
+                <div className="mt-1.5">
+                  {confirmingDelete ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-red-600">确认删除？</span>
+                      <button
+                        onClick={() => {
+                          deleteVersion.mutate(versionId!);
+                          setConfirmDeleteId(null);
+                        }}
+                        disabled={deleteVersion.isPending}
+                        className="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+                      >
+                        删除
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        取消
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDeleteId(versionId!)}
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-red-600 transition-colors"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      删除
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

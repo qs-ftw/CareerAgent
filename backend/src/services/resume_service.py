@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, delete as sa_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.resume import Resume, ResumeVersion
@@ -204,17 +204,89 @@ async def list_versions(
     ]
 
 
+async def delete_version(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    resume_id: uuid.UUID,
+    version_id: uuid.UUID,
+) -> None:
+    """Delete a resume version. Cannot delete the current (latest) version."""
+    # Verify ownership
+    stmt = select(Resume).where(
+        Resume.id == resume_id,
+        Resume.user_id == user_id,
+        Resume.deleted_at.is_(None),
+    )
+    result = await session.execute(stmt)
+    resume = result.scalar_one_or_none()
+    if resume is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Resume not found")
+
+    # Find the version
+    ver_stmt = select(ResumeVersion).where(
+        ResumeVersion.id == version_id,
+        ResumeVersion.resume_id == resume_id,
+    )
+    ver_result = await session.execute(ver_stmt)
+    version = ver_result.scalar_one_or_none()
+    if version is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Version not found")
+
+    # Cannot delete the current version
+    if version.version_no == resume.current_version_no:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Cannot delete the current version")
+
+    await session.execute(
+        sa_delete(ResumeVersion).where(ResumeVersion.id == version_id)
+    )
+    await session.flush()
+
+
+# ---------------------------------------------------------------------------
+# Score calculation helpers
+# ---------------------------------------------------------------------------
+
+_SECTIONS = ("summary", "skills", "experiences", "projects", "highlights", "metrics", "interview_points")
+
+
+def _calc_completeness(content: dict) -> float:
+    """Calculate resume completeness as percentage of sections with content."""
+    filled = sum(1 for s in _SECTIONS if content.get(s))
+    return round(filled / len(_SECTIONS) * 100, 1)
+
+
+def _calc_match_score(content: dict, role_skills: list[str]) -> float:
+    """Calculate match score: % of role required skills found in resume skills."""
+    if not role_skills:
+        return 0.0
+    resume_skills = set(s.lower() for s in (content.get("skills") or []))
+    matched = sum(1 for s in role_skills if s.lower() in resume_skills)
+    return round(matched / len(role_skills) * 100, 1)
+
+
 async def create_resume_for_role(
     session: AsyncSession,
     user_id: uuid.UUID,
     workspace_id: uuid.UUID,
     target_role_id: uuid.UUID,
     initial_content: ResumeContent,
+    role_skills: list[str] | None = None,
 ) -> ResumeResponse:
     """Create a new master resume for a given role with its first version.
 
     Used by the role-initialization agent pipeline.
     """
+    if hasattr(initial_content, "model_dump"):
+        content_dict = initial_content.model_dump()
+    else:
+        content_dict = dict(initial_content)
+
+    completeness = _calc_completeness(content_dict)
+    match_score = _calc_match_score(content_dict, role_skills or [])
+
     resume = Resume(
         workspace_id=workspace_id,
         user_id=user_id,
@@ -224,16 +296,11 @@ async def create_resume_for_role(
         parent_resume_id=None,
         current_version_no=1,
         status="draft",
-        completeness_score=0.0,
-        match_score=0.0,
+        completeness_score=completeness,
+        match_score=match_score,
     )
     session.add(resume)
     await session.flush()
-
-    if hasattr(initial_content, "model_dump"):
-        content_dict = initial_content.model_dump()
-    else:
-        content_dict = dict(initial_content)
 
     version = ResumeVersion(
         resume_id=resume.id,
@@ -241,8 +308,8 @@ async def create_resume_for_role(
         content_json=content_dict,
         generated_by="agent",
         source_type="initial_draft",
-        completeness_score=0.0,
-        match_score=0.0,
+        completeness_score=completeness,
+        match_score=match_score,
     )
     session.add(version)
     await session.flush()

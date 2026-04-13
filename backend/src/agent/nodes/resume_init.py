@@ -1,4 +1,4 @@
-"""Resume Init node — creates an initial resume skeleton for a new role."""
+"""Resume Init node — generates an initial resume using user achievements."""
 
 from __future__ import annotations
 
@@ -12,42 +12,96 @@ logger = logging.getLogger(__name__)
 _SYSTEM_PROMPT = """\
 You are an expert resume writer for software engineers.
 
-Given a role's capability model, generate an initial resume skeleton as JSON:
+Given a target role and the user's career achievements, generate a complete, \
+content-rich resume as JSON:
 {
-  "summary": "A 2-3 sentence professional summary tailored to the role",
-  "skills": ["list of key skills to highlight"],
-  "experiences": [{"company": "TBD", "title": "TBD", "period": "TBD", "description": "TBD"}],
-  "projects": [{"name": "TBD", "description": "TBD", "tech_stack": [], "highlights": []}],
-  "highlights": ["2-3 technical highlights relevant to the role"],
-  "metrics": [{"description": "TBD", "value": "TBD"}],
-  "interview_points": ["2-3 talking points for interviews"]
+  "summary": "A 2-3 sentence professional summary highlighting the user's most \
+relevant experience for this role",
+  "skills": ["list of key skills from the user's achievements that match the role"],
+  "experiences": [{"company": "from context or generic", "title": "inferred role", \
+"period": "inferred or omit", "description": "2-3 bullet points of concrete \
+accomplishments with metrics where available"}],
+  "projects": [{"name": "project name from achievements", "description": "what was \
+built and why it matters", "tech_stack": ["technologies used"], "highlights": \
+["key outcomes with metrics"]}],
+  "highlights": ["3-5 standout technical achievements relevant to the role, with \
+quantified results"],
+  "metrics": [{"description": "what was improved", "value": "concrete number"}],
+  "interview_points": ["3-5 talking points drawn from real achievements for \
+interviews"]
 }
 
-The resume should be a skeleton with placeholders (TBD) where real data will go.
-Focus on structuring it to highlight the capabilities needed for this specific role.
+IMPORTANT RULES:
+- Use ONLY information from the provided achievements. Do not fabricate experiences.
+- Extract concrete metrics, numbers, and outcomes from the achievements.
+- Tailor descriptions to emphasize skills and outcomes relevant to the target role.
+- Fill in real content everywhere — do NOT use "TBD" or placeholder text.
+- If the user has achievements, each one should map to at least one project or \
+experience entry.
+- Write in the same language as the achievements (Chinese/English).
+
 Return ONLY the JSON, no other text."""
 
 
 async def resume_init(state: CareerAgentState) -> dict:
-    """Generate a resume skeleton based on the capability model for a new role.
+    """Generate a resume using user achievements and the capability model.
 
-    Uses LLM if available, otherwise falls back to a template.
+    Uses LLM with achievements data to produce a content-rich resume.
+    Falls back to a basic template if LLM fails or no achievements exist.
     """
     role_input = state.get("target_role_input") or {}
     capability_model = state.get("capability_model") or {}
+    career_assets = state.get("career_assets") or {}
+    achievements = career_assets.get("achievements", [])
     role_name = role_input.get("role_name", "Unknown Role")
 
-    # Build prompt from capability model
-    user_parts = [f"Role: {role_name}"]
+    # Build user prompt
+    user_parts = [f"Target Role: {role_name}"]
+
+    role_desc = role_input.get("description")
+    if role_desc:
+        user_parts.append(f"Role Description: {role_desc}")
+
+    required_skills = role_input.get("required_skills", [])
+    if required_skills:
+        user_parts.append(f"Required Skills: {', '.join(required_skills)}")
+
+    bonus_skills = role_input.get("bonus_skills", [])
+    if bonus_skills:
+        user_parts.append(f"Bonus Skills: {', '.join(bonus_skills)}")
+
     if capability_model:
         user_parts.append(
             f"\nCapability Model:\n"
             f"{json.dumps(capability_model, ensure_ascii=False, indent=2)}"
         )
 
-    required_skills = role_input.get("required_skills", [])
-    if required_skills:
-        user_parts.append(f"Key Skills to Highlight: {', '.join(required_skills)}")
+    if achievements:
+        user_parts.append(
+            f"\nUser Achievements ({len(achievements)} total):"
+        )
+        for i, ach in enumerate(achievements, 1):
+            ach_text = f"\n{i}. {ach['title']}"
+            if ach.get("summary"):
+                ach_text += f"\n   Summary: {ach['summary']}"
+            if ach.get("raw_content"):
+                ach_text += f"\n   Details: {ach['raw_content']}"
+            if ach.get("tags"):
+                ach_text += f"\n   Tags: {', '.join(ach['tags'])}"
+            if ach.get("metrics"):
+                metrics_str = "; ".join(
+                    f"{m.get('description', '')}: {m.get('value', '')}"
+                    for m in ach["metrics"]
+                    if isinstance(m, dict)
+                )
+                if metrics_str:
+                    ach_text += f"\n   Metrics: {metrics_str}"
+            user_parts.append(ach_text)
+    else:
+        user_parts.append(
+            "\nNote: The user has no recorded achievements yet. "
+            "Generate a skeleton resume highlighting the role's required skills."
+        )
 
     user_prompt = "\n".join(user_parts)
 
@@ -64,11 +118,12 @@ async def resume_init(state: CareerAgentState) -> dict:
             ]
         )
         content = response.content
-        if "```json" in content:
-            content = content.split("```json")[1].split("```")[0]
-        elif "```" in content:
-            content = content.split("```")[1].split("```")[0]
-        resume_draft = json.loads(content.strip())
+        if isinstance(content, str):
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0]
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0]
+            resume_draft = json.loads(content.strip())
     except Exception as e:
         logger.info(f"LLM resume init failed ({e}), using template fallback")
 
@@ -89,8 +144,9 @@ async def resume_init(state: CareerAgentState) -> dict:
         "agent_logs": state.get("agent_logs", []) + [
             {
                 "node": "resume_init",
-                "action": "generated_resume_skeleton",
+                "action": "generated_resume_from_achievements",
                 "role_name": role_name,
+                "achievements_count": len(achievements),
             }
         ],
     }

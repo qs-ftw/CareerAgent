@@ -54,10 +54,11 @@ def _resolve_env_vars(obj):
             var = m.group(1)
             val = os.environ.get(var)
             if val is None:
-                raise ValueError(
-                    f"Environment variable ${var} referenced in config "
-                    f"but not set. Set it in .env or your shell environment."
+                import logging
+                logging.getLogger(__name__).warning(
+                    f"Environment variable ${var} referenced in config but not set"
                 )
+                return m.group(0)  # leave ${VAR} as-is
             return val
         return _ENV_VAR_RE.sub(_replacer, obj)
     if isinstance(obj, dict):

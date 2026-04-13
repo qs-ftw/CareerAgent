@@ -36,6 +36,8 @@ export const resumeApi = {
   update: (id: string, data: unknown) =>
     apiClient.patch(`/resumes/${id}`, data),
   versions: (id: string) => apiClient.get(`/resumes/${id}/versions`),
+  deleteVersion: (resumeId: string, versionId: string) =>
+    apiClient.delete(`/resumes/${resumeId}/versions/${versionId}`),
   applySuggestion: (id: string, suggestionId: string) =>
     apiClient.post(`/resumes/${id}/apply-suggestion`, { suggestion_id: suggestionId }),
 };

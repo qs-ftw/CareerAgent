@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.models.achievement import Achievement
 from src.models.target_role import RoleCapabilityModel, TargetRole
 from src.schemas.role import RoleCreate, RoleResponse, RoleUpdate
 
@@ -80,7 +81,41 @@ async def initialize_role_assets(
     4. Creates initial gap items
     """
     from src.agent.graph import role_init_graph
+    from src.models.resume import Resume
     from src.services.resume_service import create_resume_for_role
+
+    # Soft-delete any existing resumes for this role so regeneration works
+    existing_stmt = select(Resume).where(
+        Resume.target_role_id == role_id,
+        Resume.deleted_at.is_(None),
+    )
+    existing_result = await session.execute(existing_stmt)
+    for old_resume in existing_result.scalars().all():
+        old_resume.deleted_at = datetime.now(UTC)
+    await session.flush()
+
+    # Load user achievements for resume generation
+    ach_stmt = (
+        select(Achievement)
+        .where(
+            Achievement.user_id == user_id,
+            Achievement.importance_score > 0,
+        )
+        .order_by(Achievement.importance_score.desc())
+    )
+    ach_result = await session.execute(ach_stmt)
+    achievements = [
+        {
+            "title": a.title,
+            "summary": a.parsed_summary or "",
+            "tags": a.tags_json if isinstance(a.tags_json, list) else [],
+            "metrics": a.metrics_json if isinstance(a.metrics_json, list) else [],
+            "raw_content": a.raw_content or "",
+        }
+        for a in ach_result.scalars().all()[:10]
+    ]
+
+    career_assets = {"achievements": achievements}
 
     # Build agent state from role input
     agent_input = {
@@ -95,6 +130,7 @@ async def initialize_role_assets(
             "keywords": data.keywords,
             "source_jd": data.source_jd,
         },
+        "career_assets": career_assets,
         "suggestions": [],
         "gap_updates": [],
         "agent_logs": [],
@@ -136,11 +172,16 @@ async def initialize_role_assets(
             cap.evaluation_rules_json = capability_model.get("evaluation_rules")
             await session.flush()
 
-    # 2. Create master resume with generated skeleton
+    # 2. Create master resume with generated content
     resume_draft = result.get("resume_draft")
     if resume_draft:
         await create_resume_for_role(
-            session, user_id, workspace_id, role_id, resume_draft
+            session,
+            user_id,
+            workspace_id,
+            role_id,
+            resume_draft,
+            role_skills=data.required_skills or [],
         )
 
     # 3. Create initial gap items

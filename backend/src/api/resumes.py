@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_db
@@ -102,3 +102,18 @@ async def apply_suggestion(
     if resume is None:
         raise HTTPException(status_code=404, detail="Resume not found")
     return resume
+
+
+@router.delete(
+    "/{resume_id}/versions/{version_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a resume version",
+)
+async def delete_version(
+    resume_id: uuid.UUID = Path(..., description="The resume UUID"),
+    version_id: uuid.UUID = Path(..., description="The version UUID"),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Delete a specific resume version. Cannot delete the current (latest) version."""
+    user_id = await get_current_user_id()
+    await resume_service.delete_version(db, user_id, resume_id, version_id)
