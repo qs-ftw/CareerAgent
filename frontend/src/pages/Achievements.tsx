@@ -28,6 +28,21 @@ import {
 } from "lucide-react";
 import type { Achievement, AchievementCreateRequest, UpdateSuggestion } from "@/types";
 
+/** Extract display text from LLM-generated items that may be strings or objects like {point: "..."}, {challenge: "..."}, etc. */
+function itemText(item: unknown): string {
+  if (typeof item === "string") return item;
+  if (typeof item === "object" && item !== null) {
+    const obj = item as Record<string, unknown>;
+    // Try common key names the LLM might use
+    const text = obj.point ?? obj.challenge ?? obj.solution ?? obj.metric ?? obj.description ?? obj.content ?? obj.text;
+    const value = obj.value;
+    if (text && value) return `${text}: ${value}`;
+    if (typeof text === "string") return text;
+    if (typeof value === "string") return value;
+  }
+  return JSON.stringify(item);
+}
+
 const SOURCE_TYPE_LABELS: Record<string, string> = {
   manual: "手动录入",
   git_commit: "Git 提交",
@@ -693,7 +708,7 @@ function DetailDrawer({
                         key={i}
                         className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground"
                       >
-                        {String(point.description ?? point.content ?? JSON.stringify(point))}
+                        {itemText(point)}
                       </li>
                     ))}
                   </ul>
@@ -710,7 +725,7 @@ function DetailDrawer({
                         key={i}
                         className="rounded-md border bg-orange-50 px-3 py-2 text-sm text-orange-800"
                       >
-                        {String(c.description ?? c.content ?? JSON.stringify(c))}
+                        {itemText(c)}
                       </li>
                     ))}
                   </ul>
@@ -727,7 +742,7 @@ function DetailDrawer({
                         key={i}
                         className="rounded-md border bg-green-50 px-3 py-2 text-sm text-green-800"
                       >
-                        {String(s.description ?? s.content ?? JSON.stringify(s))}
+                        {itemText(s)}
                       </li>
                     ))}
                   </ul>
@@ -744,7 +759,7 @@ function DetailDrawer({
                         key={i}
                         className="rounded-md border bg-blue-50 px-3 py-2 text-sm text-blue-800"
                       >
-                        {String(m.description ?? m.content ?? JSON.stringify(m))}
+                        {itemText(m)}
                       </li>
                     ))}
                   </ul>
@@ -762,7 +777,7 @@ function DetailDrawer({
                         className="flex items-start gap-2 rounded-md border bg-purple-50 px-3 py-2 text-sm text-purple-800"
                       >
                         <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        {point}
+                        {itemText(point)}
                       </li>
                     ))}
                   </ul>

@@ -13,64 +13,64 @@ from src.agent.state import CareerAgentState
 logger = logging.getLogger(__name__)
 
 _ROLE_INIT_PROMPT = """\
-You are an expert career advisor performing a gap analysis.
+你是一位资深职业顾问，正在进行技能差距分析。
 
-Given a role's capability model and resume skeleton, identify skill gaps as JSON array:
+根据岗位的能力模型和简历骨架，识别技能差距，以 JSON 数组返回：
 [
   {
-    "skill_name": "name of the skill/capability",
+    "skill_name": "技能/能力名称",
     "gap_type": "missing|weak_evidence|weak_expression|low_depth|low_metrics",
     "priority": 1-10,
-    "current_state": "description of current state",
-    "target_state": "what meeting this capability looks like",
-    "improvement_plan": {"action": "what to do", "expected_output": "what to produce"}
+    "current_state": "当前状态描述",
+    "target_state": "达标状态的描述",
+    "improvement_plan": {"action": "具体行动", "expected_output": "预期产出"}
   }
 ]
 
-Gap types:
-- missing: user has no experience with this skill
-- weak_evidence: user likely has the skill but no proof in resume
-- weak_expression: skill is present but poorly described
-- low_depth: skill is mentioned but lacks depth
-- low_metrics: no quantifiable metrics for this capability
+差距类型：
+- missing: 用户完全没有该技能经验
+- weak_evidence: 用户可能具备该技能但简历中没有证明
+- weak_expression: 技能存在但描述不充分
+- low_depth: 提到了技能但缺乏深度
+- low_metrics: 没有可量化的指标
 
-Focus on the most impactful gaps. Return 3-7 items max.
-Return ONLY the JSON array, no other text."""
+专注于最有影响力的差距，最多返回 3-7 项。
+只返回 JSON 数组，不要其他文字。"""
 
 _ACHIEVEMENT_GAP_PROMPT = """\
-You are evaluating skill gaps between a software engineer's profile and target roles.
+你正在评估软件工程师的能力档案与目标岗位之间的技能差距。
 
-Given a new achievement and the current gaps for each matched role, determine:
-1. Does this achievement address any existing gaps? If yes, suggest progress updates.
-2. Does this achievement reveal any new gaps?
+根据新成果和每个匹配岗位的当前差距，判断：
+1. 这个成果是否弥补了某些现有差距？如果是，建议更新进度。
+2. 这个成果是否暴露了新的差距？
 
-Return a JSON array of gap update objects:
+返回 JSON 数组：
 [
   {
     "action": "update_gap",
-    "gap_id": "UUID of existing gap (if updating)",
+    "gap_id": "现有差距的 UUID（如果是更新）",
     "progress": 0.0-1.0,
     "status": "open|in_progress|closed",
-    "reason": "why the progress changed"
+    "reason": "进度变化的原因"
   },
   {
     "action": "create_gap",
-    "role_id": "UUID of the role",
+    "role_id": "岗位的 UUID",
     "items": [
       {
-        "skill_name": "name",
+        "skill_name": "技能名称",
         "gap_type": "missing|weak_evidence|weak_expression|low_depth|low_metrics",
         "priority": 1-10,
-        "current_state": "description",
-        "target_state": "description",
-        "improvement_plan": {"action": "what to do", "expected_output": "what to produce"}
+        "current_state": "当前状态描述",
+        "target_state": "目标状态描述",
+        "improvement_plan": {"action": "具体行动", "expected_output": "预期产出"}
       }
     ]
   }
 ]
 
-Be conservative — only update gaps that are clearly affected by this achievement.
-Return ONLY the JSON array, no other text."""
+谨慎判断——只更新确实被该成果影响的差距。
+只返回 JSON 数组，不要其他文字。"""
 
 
 async def gap_evaluation(state: CareerAgentState) -> dict:

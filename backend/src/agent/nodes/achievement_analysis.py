@@ -10,22 +10,24 @@ from src.agent.state import CareerAgentState
 logger = logging.getLogger(__name__)
 
 _SYSTEM_PROMPT = """\
-You are an expert career coach analyzing a software engineer's work achievement.
+你是一位资深职业教练，正在分析一位软件工程师的工作成果。
 
-Given the raw achievement text, extract structured information as JSON:
+根据原始成果文本，提取结构化信息，以 JSON 格式返回：
 {
-  "summary": "A concise one-paragraph summary of the achievement",
-  "technical_points": [{"point": "technology, pattern, or architecture decision involved"}],
-  "challenges": [{"challenge": "problem encountered and its context"}],
-  "solutions": [{"solution": "how the challenge was addressed"}],
-  "metrics": [{"metric": "quantifiable outcome", "value": "specific number or percentage"}],
-  "interview_points": [{"point": "how to articulate this in a behavioral interview"}],
-  "tags": ["relevant", "skill", "tags"],
+  "summary": "成果的一段话精炼摘要",
+  "technical_points": [{"point": "涉及的技术、模式或架构决策"}],
+  "challenges": [{"challenge": "遇到的问题及其背景"}],
+  "solutions": [{"solution": "如何解决该问题"}],
+  "metrics": [{"metric": "可量化的成果", "value": "具体数字或百分比"}],
+  "interview_points": [{"point": "在行为面试中如何表述该成果"}],
+  "tags": ["相关", "技能", "标签"],
   "importance_score": 0.0-1.0
 }
 
-Be specific and practical. Extract real technical details and quantifiable results.
-Return ONLY the JSON object, no other text.
+要求：
+- 所有文本字段必须使用中文
+- 具体且实用，提取真实的技术细节和可量化结果
+- 只返回 JSON 对象，不要其他文字
 """
 
 

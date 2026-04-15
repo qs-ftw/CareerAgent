@@ -10,23 +10,21 @@ from src.agent.state import CareerAgentState
 logger = logging.getLogger(__name__)
 
 _SYSTEM_PROMPT = """\
-You are matching a parsed achievement against a user's active target roles.
+你正在将一个已解析的工作成果与用户的目标岗位进行匹配。
 
-Given the parsed achievement and the list of target roles, compute a match
-relevance score (0.0-1.0) for each role and explain why.
+根据成果内容和目标岗位列表，计算每个岗位的相关度分数（0.0-1.0）并说明原因。
 
-Return a JSON array of match objects:
+返回 JSON 数组：
 [
   {
-    "role_id": "the role's UUID",
+    "role_id": "岗位的 UUID",
     "match_score": 0.0-1.0,
-    "reason": "brief explanation of relevance"
+    "reason": "简要说明相关性"
   }
 ]
 
-Only include roles with match_score >= 0.3. Be generous in matching — even
-partial relevance is valuable to surface.
-Return ONLY the JSON array, no other text.
+只包含 match_score >= 0.3 的岗位。匹配时适当放宽——即使部分相关也有价值。
+只返回 JSON 数组，不要其他文字。
 """
 
 
