@@ -81,18 +81,17 @@ async def initialize_role_assets(
     4. Creates initial gap items
     """
     from src.agent.graph import role_init_graph
-    from src.models.resume import Resume
-    from src.services.resume_service import create_resume_for_role
+    from src.models.resume import Resume, ResumeVersion
+    from src.services.resume_service import create_resume_for_role, _calc_completeness, _calc_match_score
 
-    # Soft-delete any existing resumes for this role so regeneration works
+    # Find existing active resume for this role (we'll add a new version to it)
     existing_stmt = select(Resume).where(
         Resume.target_role_id == role_id,
         Resume.deleted_at.is_(None),
+        Resume.status.in_(["active", "draft"]),
     )
     existing_result = await session.execute(existing_stmt)
-    for old_resume in existing_result.scalars().all():
-        old_resume.deleted_at = datetime.now(UTC)
-    await session.flush()
+    existing_resume = existing_result.scalars().first()
 
     # Load user achievements for resume generation
     ach_stmt = (
@@ -146,20 +145,24 @@ async def initialize_role_assets(
         result = await role_init_graph.ainvoke(agent_input)
     except Exception as e:
         logger.error(f"Role init pipeline failed for {role_id}: {e}")
-        # Create a basic resume even if agent fails
-        result = {
-            "capability_model": None,
-            "resume_draft": {
-                "summary": f"Experienced {data.role_name}.",
-                "skills": data.required_skills or [],
-                "experiences": [],
-                "projects": [],
-                "highlights": [],
-                "metrics": [],
-                "interview_points": [],
-            },
-            "gap_updates": [],
-        }
+        if existing_resume:
+            # Don't overwrite existing resume with fallback content on failure
+            result = {"capability_model": None, "resume_draft": None, "gap_updates": []}
+        else:
+            # First time — create a basic resume even if agent fails
+            result = {
+                "capability_model": None,
+                "resume_draft": {
+                    "summary": f"Experienced {data.role_name}.",
+                    "skills": data.required_skills or [],
+                    "experiences": [],
+                    "projects": [],
+                    "highlights": [],
+                    "metrics": [],
+                    "interview_points": [],
+                },
+                "gap_updates": [],
+            }
 
     # 1. Update capability model
     capability_model = result.get("capability_model")
@@ -177,20 +180,67 @@ async def initialize_role_assets(
             cap.evaluation_rules_json = capability_model.get("evaluation_rules")
             await session.flush()
 
-    # 2. Create master resume with generated content
+    # 2. Create or update master resume with generated content
     resume_draft = result.get("resume_draft")
     if resume_draft:
-        await create_resume_for_role(
-            session,
-            user_id,
-            workspace_id,
-            role_id,
-            resume_draft,
-            role_skills=data.required_skills or [],
-        )
+        if hasattr(resume_draft, "model_dump"):
+            content_dict = resume_draft.model_dump()
+        else:
+            content_dict = dict(resume_draft)
 
-    # 3. Create initial gap items
+        if existing_resume:
+            # Add a new version to the existing resume
+            ver_result = await session.execute(
+                select(ResumeVersion)
+                .where(ResumeVersion.resume_id == existing_resume.id)
+                .order_by(ResumeVersion.version_no.desc())
+                .limit(1)
+            )
+            latest_ver = ver_result.scalar_one_or_none()
+            next_ver_no = (latest_ver.version_no + 1) if latest_ver else 1
+
+            completeness = _calc_completeness(content_dict)
+            match_score = _calc_match_score(content_dict, data.required_skills or [])
+
+            new_version = ResumeVersion(
+                resume_id=existing_resume.id,
+                version_no=next_ver_no,
+                content_json=content_dict,
+                generated_by="agent",
+                source_type="initial_draft",
+                completeness_score=completeness,
+                match_score=match_score,
+                summary_note="重新生成",
+            )
+            session.add(new_version)
+            existing_resume.current_version_no = next_ver_no
+            existing_resume.completeness_score = completeness
+            existing_resume.match_score = match_score
+            existing_resume.updated_at = datetime.now(UTC)
+            await session.flush()
+        else:
+            # First time — create a brand new resume
+            await create_resume_for_role(
+                session,
+                user_id,
+                workspace_id,
+                role_id,
+                resume_draft,
+                role_skills=data.required_skills or [],
+                role_name=data.role_name,
+                profile_contact=profile_ctx.get("contact") if profile_ctx else None,
+            )
+
+    # 3. Create initial gap items (delete existing ones for this role first)
     from src.models.gap import GapItem
+
+    existing_gaps_stmt = select(GapItem).where(
+        GapItem.target_role_id == role_id,
+    )
+    existing_gaps_result = await session.execute(existing_gaps_stmt)
+    for old_gap in existing_gaps_result.scalars().all():
+        await session.delete(old_gap)
+    await session.flush()
 
     for gap_update in result.get("gap_updates", []):
         for item in gap_update.get("items", []):

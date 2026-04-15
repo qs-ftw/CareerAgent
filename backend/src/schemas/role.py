@@ -19,6 +19,7 @@ class RoleCreate(BaseModel):
     source_jd: str | None = Field(
         default=None, description="Original JD text if role derived from JD"
     )
+    skip_init: bool = Field(default=False, description="Skip resume/gap generation if True")
 
 
 class RoleUpdate(BaseModel):

@@ -30,6 +30,7 @@ def _to_response(profile: CandidateProfile) -> CandidateProfileResponse:
         location=profile.location_json or {},
         preferences=profile.preferences_json or {},
         constraints=profile.constraints_json or {},
+        contact=profile.contact_json or {},
         created_at=profile.created_at,
         updated_at=profile.updated_at,
     )
@@ -81,6 +82,7 @@ async def upsert_profile(
     profile.location_json = data.location
     profile.preferences_json = data.preferences
     profile.constraints_json = data.constraints
+    profile.contact_json = data.contact
 
     await session.flush()
     await session.refresh(profile)
@@ -97,10 +99,10 @@ async def get_completeness(
 
     if profile_resp is None:
         return ProfileCompletenessResponse(
-            total_fields=8,
+            total_fields=9,
             filled_fields=0,
             completeness_pct=0.0,
-            missing_high_value=["headline", "superpowers", "proof_points"],
+            missing_high_value=["headline", "superpowers", "contact"],
         )
 
     high_value_fields = {
@@ -112,6 +114,7 @@ async def get_completeness(
         "location": bool(profile_resp.location),
         "preferences": bool(profile_resp.preferences),
         "constraints": bool(profile_resp.constraints),
+        "contact": bool(profile_resp.contact),
     }
 
     filled = sum(1 for v in high_value_fields.values() if v)
@@ -155,4 +158,5 @@ async def get_profile_context(
         "location": profile.location_json or {},
         "preferences": profile.preferences_json or {},
         "constraints": profile.constraints_json or {},
+        "contact": profile.contact_json or {},
     }

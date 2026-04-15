@@ -7,7 +7,6 @@ import { RoleDetail } from "@/pages/RoleDetail";
 import { ResumeDetail } from "@/pages/ResumeDetail";
 import { Achievements } from "@/pages/Achievements";
 import { GapBoard } from "@/pages/GapBoard";
-import { JDTailor } from "@/pages/JDTailor";
 import { Resumes } from "@/pages/Resumes";
 import { Suggestions } from "@/pages/Suggestions";
 import { Profile } from "@/pages/Profile";
@@ -37,7 +36,6 @@ export default function App() {
               <Route path="/resumes/:id" element={<ResumeDetail />} />
               <Route path="/achievements" element={<Achievements />} />
               <Route path="/gaps" element={<GapBoard />} />
-              <Route path="/jd-tailor" element={<JDTailor />} />
               <Route path="/suggestions" element={<Suggestions />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/stories" element={<StoryBank />} />

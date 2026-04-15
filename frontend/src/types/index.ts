@@ -7,6 +7,15 @@ export interface PaginatedResponse<T> {
 
 // ── Profile ────────────────────────────────────────────
 
+export interface ProfileContact {
+  email: string;
+  phone: string;
+  linkedin_url: string;
+  github_url: string;
+  portfolio_url: string;
+  location: string;
+}
+
 export interface CandidateProfile {
   id: string;
   headline: string;
@@ -17,6 +26,7 @@ export interface CandidateProfile {
   location: Record<string, unknown>;
   preferences: Record<string, unknown>;
   constraints: Record<string, unknown>;
+  contact: ProfileContact;
   created_at: string;
   updated_at: string;
 }
@@ -30,6 +40,7 @@ export interface ProfileUpsertRequest {
   location?: Record<string, unknown>;
   preferences?: Record<string, unknown>;
   constraints?: Record<string, unknown>;
+  contact?: ProfileContact;
 }
 
 export interface ProfileCompleteness {
@@ -65,9 +76,27 @@ export interface RoleCreateRequest {
   bonus_skills?: string[];
   priority?: number;
   source_jd?: string;
+  skip_init?: boolean;
+}
+
+export interface RoleAnalysisResponse {
+  role_name: string;
+  role_type: string;
+  description: string;
+  required_skills: string[];
+  bonus_skills: string[];
+  keywords: string[];
 }
 
 // ── Resume ─────────────────────────────────────────────
+
+export interface ContactInfo {
+  email: string;
+  phone: string;
+  linkedin_url: string;
+  portfolio_url: string;
+  location: string;
+}
 
 export interface ResumeContent {
   summary: string;
@@ -77,6 +106,7 @@ export interface ResumeContent {
   highlights: string[];
   metrics: Record<string, unknown>[];
   interview_points: string[];
+  contact: ContactInfo;
 }
 
 export interface Resume {

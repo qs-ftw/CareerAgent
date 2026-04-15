@@ -4,6 +4,8 @@ import { Header } from "@/components/layout/Header";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { useRole, useDeleteRole, useInitRoleAssets } from "@/hooks/useRoles";
 import { useRoleResume } from "@/hooks/useResumes";
+import { useGapsForRole, useUpdateGap } from "@/hooks/useGaps";
+import { resumeApi } from "@/lib/api";
 import {
   ChevronRight,
   Loader2,
@@ -17,6 +19,7 @@ import {
   ArrowLeft,
   X,
   Save,
+  Download,
 } from "lucide-react";
 
 export function RoleDetail() {
@@ -24,6 +27,7 @@ export function RoleDetail() {
   const navigate = useNavigate();
   const { data: role, isLoading, isError } = useRole(id ?? "");
   const { data: resume } = useRoleResume(id ?? "");
+  const { data: gaps } = useGapsForRole(id ?? "");
   const deleteRole = useDeleteRole();
   const initAssets = useInitRoleAssets();
 
@@ -225,28 +229,80 @@ export function RoleDetail() {
             </h3>
             <div className="mt-3">
               {resume ? (
-                <div className="flex items-center justify-between rounded-md border p-3">
-                  <div>
-                    <p className="text-sm font-medium">{resume.resume_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      版本 {resume.current_version_no} | 完成度{" "}
-                      {resume.completeness_score}% | 匹配度 {resume.match_score}%
-                    </p>
+                <div className="space-y-3 rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">{resume.resume_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        版本 {resume.current_version_no}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => initAssets.mutate(id ?? "")}
+                        disabled={initAssets.isPending}
+                        className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:opacity-50 transition-colors"
+                      >
+                        {initAssets.isPending ? "生成中..." : "重新生成"}
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            const { data } = await resumeApi.exportPdf(resume.id);
+                            const url = URL.createObjectURL(data);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = `${resume.resume_name.replace(/\s+/g, "_")}.pdf`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                          } catch (err) {
+                            console.error("Export PDF failed:", err);
+                          }
+                        }}
+                        className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors inline-flex items-center gap-1"
+                      >
+                        <Download className="h-3 w-3" />
+                        导出 PDF
+                      </button>
+                      <button
+                        onClick={() => navigate(`/resumes/${resume.id}`)}
+                        className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                      >
+                        查看简历
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => initAssets.mutate(id ?? "")}
-                      disabled={initAssets.isPending}
-                      className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:opacity-50 transition-colors"
-                    >
-                      {initAssets.isPending ? "生成中..." : "重新生成"}
-                    </button>
-                    <button
-                      onClick={() => navigate(`/resumes/${resume.id}`)}
-                      className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-                    >
-                      查看简历
-                    </button>
+
+                  {/* Match Score Progress Bars */}
+                  <div className="space-y-2">
+                    <div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">匹配度</span>
+                        <span className={`font-bold ${(resume.match_score ?? 0) >= 70 ? "text-green-600" : (resume.match_score ?? 0) >= 40 ? "text-yellow-600" : "text-red-600"}`}>
+                          {(resume.match_score ?? 0).toFixed(0)}%
+                        </span>
+                      </div>
+                      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className={`h-full rounded-full transition-all ${(resume.match_score ?? 0) >= 70 ? "bg-green-500" : (resume.match_score ?? 0) >= 40 ? "bg-yellow-500" : "bg-red-500"}`}
+                          style={{ width: `${Math.min(resume.match_score ?? 0, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">完整度</span>
+                        <span className={`font-bold ${(resume.completeness_score ?? 0) >= 70 ? "text-green-600" : (resume.completeness_score ?? 0) >= 40 ? "text-yellow-600" : "text-red-600"}`}>
+                          {(resume.completeness_score ?? 0).toFixed(0)}%
+                        </span>
+                      </div>
+                      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className={`h-full rounded-full transition-all ${(resume.completeness_score ?? 0) >= 70 ? "bg-green-500" : (resume.completeness_score ?? 0) >= 40 ? "bg-yellow-500" : "bg-red-500"}`}
+                          style={{ width: `${Math.min(resume.completeness_score ?? 0, 100)}%` }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -278,12 +334,26 @@ export function RoleDetail() {
               <GitCompareArrows className="h-4 w-4 text-primary" />
               Gap 列表
             </h3>
-            <div className="mt-3 text-center py-6">
-              <GitCompareArrows className="mx-auto h-10 w-10 text-muted-foreground/40" />
-              <p className="mt-2 text-sm text-muted-foreground">暂无 Gap 分析</p>
-              <button className="mt-3 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
-                开始分析
-              </button>
+            <div className="mt-3">
+              {gaps && gaps.length > 0 ? (
+                <div className="space-y-2">
+                  {gaps.map((gap) => (
+                    <GapCard key={gap.id} gap={gap} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <GitCompareArrows className="mx-auto h-10 w-10 text-muted-foreground/40" />
+                  <p className="mt-2 text-sm text-muted-foreground">暂无 Gap 分析</p>
+                  <button
+                    onClick={() => initAssets.mutate(id ?? "")}
+                    disabled={initAssets.isPending}
+                    className="mt-3 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  >
+                    {initAssets.isPending ? "分析中..." : "开始分析"}
+                  </button>
+                </div>
+              )}
             </div>
           </section>
         </div>
@@ -356,7 +426,7 @@ function InfoField({
 // ── EditRoleModal ─────────────────────────────────────
 
 import { useUpdateRole } from "@/hooks/useRoles";
-import type { TargetRole, RoleCreateRequest } from "@/types";
+import type { TargetRole, RoleCreateRequest, GapItem } from "@/types";
 
 function EditRoleModal({
   role,
@@ -518,6 +588,76 @@ function EditRoleModal({
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+// ── GapCard ─────────────────────────────────────────────
+
+const GAP_TYPE_LABELS: Record<string, string> = {
+  missing: "技能缺失",
+  weak_evidence: "证据不足",
+  weak_expression: "表达薄弱",
+  low_depth: "深度不够",
+  low_metrics: "量化不足",
+  jd_mismatch: "JD 不匹配",
+};
+
+const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  open: { label: "未开始", color: "bg-gray-100 text-gray-600" },
+  in_progress: { label: "进行中", color: "bg-blue-100 text-blue-600" },
+  closed: { label: "已关闭", color: "bg-green-100 text-green-600" },
+};
+
+function GapCard({ gap }: { gap: GapItem }) {
+  const updateGap = useUpdateGap();
+  const statusInfo = STATUS_LABELS[gap.status] ?? { label: gap.status, color: "bg-gray-100 text-gray-600" };
+
+  const cycleStatus = () => {
+    const next = gap.status === "open" ? "in_progress" : gap.status === "in_progress" ? "closed" : "open";
+    updateGap.mutate({ id: gap.id, data: { status: next } });
+  };
+
+  return (
+    <div className="rounded-md border p-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="rounded px-1.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-700">
+            P{gap.priority}
+          </span>
+          <span className="text-sm font-medium">{gap.skill_name}</span>
+          <span className="text-xs text-muted-foreground">
+            {GAP_TYPE_LABELS[gap.gap_type] ?? gap.gap_type}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={cycleStatus}
+            className={`text-xs px-1.5 py-0.5 rounded ${statusInfo.color}`}
+          >
+            {statusInfo.label}
+          </button>
+          <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+            <div className="h-full bg-primary rounded-full" style={{ width: `${gap.progress}%` }} />
+          </div>
+        </div>
+      </div>
+      {(gap.current_state || gap.target_state) && (
+        <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+          {gap.current_state && (
+            <div>
+              <span className="font-medium text-muted-foreground">现状：</span>
+              <span>{gap.current_state}</span>
+            </div>
+          )}
+          {gap.target_state && (
+            <div>
+              <span className="font-medium text-muted-foreground">目标：</span>
+              <span>{gap.target_state}</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

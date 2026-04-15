@@ -26,3 +26,4 @@ class CandidateProfile(IDMixin, TimestampMixin, Base):
     location_json: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     preferences_json: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     constraints_json: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    contact_json: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { roleApi } from "@/lib/api";
-import type { TargetRole, RoleCreateRequest } from "@/types";
+import type { TargetRole, RoleCreateRequest, RoleAnalysisResponse } from "@/types";
 
 interface RolesListResponse {
   items: TargetRole[];
@@ -91,6 +91,24 @@ export function useInitRoleAssets() {
       queryClient.invalidateQueries({ queryKey: ["roles", id] });
       queryClient.invalidateQueries({ queryKey: ["resumes"] });
       queryClient.invalidateQueries({ queryKey: ["resumes", "role", id] });
+    },
+  });
+}
+
+export function useAnalyzeJd() {
+  return useMutation({
+    mutationFn: async (raw_jd: string) => {
+      const res = await roleApi.analyzeJd(raw_jd);
+      return res.data as RoleAnalysisResponse;
+    },
+  });
+}
+
+export function useAnalyzeName() {
+  return useMutation({
+    mutationFn: async (role_name: string) => {
+      const res = await roleApi.analyzeName(role_name);
+      return res.data as RoleAnalysisResponse;
     },
   });
 }

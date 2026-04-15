@@ -48,6 +48,18 @@ export function useUpdateResume() {
   });
 }
 
+export function useDeleteResume() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await resumeApi.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["resumes"] });
+    },
+  });
+}
+
 export function useResumeVersions(id: string) {
   return useQuery<ResumeVersion[]>({
     queryKey: ["resumes", id, "versions"],
@@ -56,6 +68,17 @@ export function useResumeVersions(id: string) {
       return data;
     },
     enabled: !!id,
+  });
+}
+
+export function useResumeVersion(resumeId: string, versionId: string | null) {
+  return useQuery<{ id: string; version_no: number; content: ResumeContent }>({
+    queryKey: ["resumes", resumeId, "versions", versionId],
+    queryFn: async () => {
+      const { data } = await resumeApi.getVersion(resumeId, versionId!);
+      return data;
+    },
+    enabled: !!resumeId && !!versionId,
   });
 }
 

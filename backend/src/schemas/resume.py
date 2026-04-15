@@ -7,6 +7,16 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
+class ContactInfo(BaseModel):
+    """Contact information for resume export. Empty fields are omitted from PDF."""
+
+    email: str = ""
+    phone: str = ""
+    linkedin_url: str = ""
+    portfolio_url: str = ""
+    location: str = ""
+
+
 class ResumeContent(BaseModel):
     """Structured resume content. Each section is stored as generic dicts/lists
     so the schema can evolve without requiring migrations for every change."""
@@ -18,6 +28,7 @@ class ResumeContent(BaseModel):
     highlights: list[Any] = Field(default_factory=list)
     metrics: list[dict[str, Any]] = Field(default_factory=list)
     interview_points: list[Any] = Field(default_factory=list)
+    contact: ContactInfo = Field(default_factory=ContactInfo)
 
 
 class ResumeResponse(BaseModel):

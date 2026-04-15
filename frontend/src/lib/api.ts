@@ -26,6 +26,8 @@ export const roleApi = {
   update: (id: string, data: unknown) => apiClient.patch(`/roles/${id}`, data),
   delete: (id: string) => apiClient.delete(`/roles/${id}`),
   init: (id: string) => apiClient.post(`/roles/${id}/init`),
+  analyzeJd: (raw_jd: string) => apiClient.post("/roles/analyze-jd", { raw_jd }),
+  analyzeName: (role_name: string) => apiClient.post("/roles/analyze-name", { role_name }),
 };
 
 // ── Resume APIs ────────────────────────────────────────
@@ -35,7 +37,11 @@ export const resumeApi = {
   get: (id: string) => apiClient.get(`/resumes/${id}`),
   update: (id: string, data: unknown) =>
     apiClient.patch(`/resumes/${id}`, data),
+  delete: (id: string) =>
+    apiClient.delete(`/resumes/${id}`),
   versions: (id: string) => apiClient.get(`/resumes/${id}/versions`),
+  getVersion: (resumeId: string, versionId: string) =>
+    apiClient.get(`/resumes/${resumeId}/versions/${versionId}`),
   deleteVersion: (resumeId: string, versionId: string) =>
     apiClient.delete(`/resumes/${resumeId}/versions/${versionId}`),
   applySuggestion: (id: string, suggestionId: string) =>

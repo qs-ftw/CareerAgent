@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { useListResumes } from "@/hooks/useResumes";
-import { FileText, Loader2, AlertTriangle } from "lucide-react";
+import { useListResumes, useDeleteResume } from "@/hooks/useResumes";
+import { FileText, Loader2, AlertTriangle, Trash2 } from "lucide-react";
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   active: { label: "生效中", color: "bg-green-100 text-green-700" },
@@ -18,6 +19,8 @@ const TYPE_MAP: Record<string, string> = {
 export function Resumes() {
   const navigate = useNavigate();
   const { data: resumes, isLoading, isError } = useListResumes();
+  const deleteResume = useDeleteResume();
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -73,58 +76,102 @@ export function Resumes() {
                 color: "bg-gray-100 text-gray-500",
               };
               return (
-                <button
+                <div
                   key={resume.id}
-                  onClick={() => navigate(`/resumes/${resume.id}`)}
-                  className="rounded-lg border bg-card p-5 text-left transition-colors hover:bg-accent"
+                  className="flex flex-col rounded-lg border bg-card p-5 text-left transition-colors hover:bg-accent"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-base font-semibold">
-                        {resume.resume_name}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {TYPE_MAP[resume.resume_type] ?? resume.resume_type}
-                      </p>
+                  {/* Clickable card body */}
+                  <div
+                    className="cursor-pointer flex-1"
+                    onClick={() => navigate(`/resumes/${resume.id}`)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-base font-semibold">
+                          {resume.resume_name}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {TYPE_MAP[resume.resume_type] ?? resume.resume_type}
+                        </p>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${status.color}`}
+                      >
+                        {status.label}
+                      </span>
                     </div>
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${status.color}`}
-                    >
-                      {status.label}
-                    </span>
-                  </div>
-                  {resume.content.summary && (
-                    <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-                      {resume.content.summary}
-                    </p>
-                  )}
-                  <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-                    <span>v{resume.current_version_no}</span>
-                    {resume.completeness_score > 0 && (
-                      <span>完成度 {Math.round(resume.completeness_score)}%</span>
+                    {resume.content.summary && (
+                      <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
+                        {resume.content.summary}
+                      </p>
                     )}
-                    {resume.match_score > 0 && (
-                      <span>匹配度 {Math.round(resume.match_score)}%</span>
-                    )}
-                  </div>
-                  {resume.content.skills && resume.content.skills.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1">
-                      {resume.content.skills.slice(0, 5).map((skill) => (
-                        <span
-                          key={skill}
-                          className="rounded bg-blue-50 px-1.5 py-0.5 text-xs text-blue-700"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                      {resume.content.skills.length > 5 && (
-                        <span className="px-1.5 py-0.5 text-xs text-muted-foreground">
-                          +{resume.content.skills.length - 5}
-                        </span>
+                    <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                      <span>v{resume.current_version_no}</span>
+                      {resume.completeness_score > 0 && (
+                        <span>完成度 {Math.round(resume.completeness_score)}%</span>
+                      )}
+                      {resume.match_score > 0 && (
+                        <span>匹配度 {Math.round(resume.match_score)}%</span>
                       )}
                     </div>
-                  )}
-                </button>
+                    {resume.content.skills && resume.content.skills.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-1">
+                        {resume.content.skills.slice(0, 5).map((skill) => (
+                          <span
+                            key={skill}
+                            className="rounded bg-blue-50 px-1.5 py-0.5 text-xs text-blue-700"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                        {resume.content.skills.length > 5 && (
+                          <span className="px-1.5 py-0.5 text-xs text-muted-foreground">
+                            +{resume.content.skills.length - 5}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {/* Delete button */}
+                  <div className="mt-3 pt-3 border-t flex items-center justify-end">
+                    {confirmDeleteId === resume.id ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-red-600">确认删除？</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteResume.mutate(resume.id);
+                            setConfirmDeleteId(null);
+                          }}
+                          disabled={deleteResume.isPending}
+                          className="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+                        >
+                          删除
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteId(null);
+                          }}
+                          className="text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          取消
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmDeleteId(resume.id);
+                        }}
+                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-red-600 transition-colors"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        删除
+                      </button>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>

@@ -31,14 +31,15 @@ async def create_role(
     role = await role_service.create_role(db, user_id, workspace_id, body)
 
     # Run agent pipeline to generate capability model, resume skeleton, initial gaps
-    try:
-        await role_service.initialize_role_assets(
-            db, user_id, workspace_id, role.id, body
-        )
-    except Exception as e:
-        # Don't fail role creation if agent pipeline fails
-        import logging
-        logging.getLogger(__name__).error(f"Agent init failed for role {role.id}: {e}")
+    if not body.skip_init:
+        try:
+            await role_service.initialize_role_assets(
+                db, user_id, workspace_id, role.id, body
+            )
+        except Exception as e:
+            # Don't fail role creation if agent pipeline fails
+            import logging
+            logging.getLogger(__name__).error(f"Agent init failed for role {role.id}: {e}")
 
     return role
 

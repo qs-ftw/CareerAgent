@@ -70,8 +70,8 @@ POST /roles/analyze-name
 
 Both endpoints return data that the frontend can edit and then submit to existing `POST /roles`.
 
-**Existing endpoint unchanged:**
-- `POST /roles` — creates role. If `source_jd` is provided, also runs `initialize_role_assets` which generates capability model, resume skeleton, and gap items.
+**Existing endpoint modified:**
+- `POST /roles` — currently always runs `initialize_role_assets` after creation. Add optional `skip_init: bool = False` field to `RoleCreate`. When `skip_init=True`, only creates the role record without generating resume/gaps. Frontend sends `skip_init=True` for "创建岗位" button, `skip_init=False` (default) for "创建岗位并生成简历".
 
 ---
 
@@ -165,6 +165,8 @@ Update: `backend/src/agent/nodes/jd_parsing.py`
 | File | Change |
 |------|--------|
 | `backend/src/agent/nodes/jd_parsing.py` | Add `description` output field, enhance prompt |
+| `backend/src/schemas/role.py` | Add `skip_init: bool = False` to `RoleCreate` |
+| `backend/src/api/roles.py` | Conditionally skip `initialize_role_assets` when `skip_init=True` |
 | `frontend/src/pages/Roles.tsx` | "新增岗位" button → dropdown with 3 options |
 | `frontend/src/pages/RoleDetail.tsx` | Enhanced match score display on resume card |
 | `frontend/src/pages/ResumeDetail.tsx` | Editable resume name in header |

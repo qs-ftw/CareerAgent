@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from typing import Any
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from fastapi.responses import Response
@@ -68,6 +69,20 @@ async def update_resume(
     return resume
 
 
+@router.delete(
+    "/{resume_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a resume",
+)
+async def delete_resume(
+    resume_id: uuid.UUID = Path(..., description="The resume UUID"),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Soft-delete a resume."""
+    user_id = await get_current_user_id()
+    await resume_service.delete_resume(db, user_id, resume_id)
+
+
 @router.get(
     "/{resume_id}/versions",
     response_model=list[dict[str, Any]],
@@ -80,6 +95,24 @@ async def list_versions(
     """Return all saved versions for a resume."""
     user_id = await get_current_user_id()
     return await resume_service.list_versions(db, user_id, resume_id)
+
+
+@router.get(
+    "/{resume_id}/versions/{version_id}",
+    response_model=dict[str, Any],
+    summary="Get a specific resume version",
+)
+async def get_version(
+    resume_id: uuid.UUID = Path(..., description="The resume UUID"),
+    version_id: uuid.UUID = Path(..., description="The version UUID"),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Return a specific version with its full content."""
+    user_id = await get_current_user_id()
+    version = await resume_service.get_version(db, user_id, resume_id, version_id)
+    if version is None:
+        raise HTTPException(status_code=404, detail="Version not found")
+    return version
 
 
 @router.post(
@@ -144,9 +177,13 @@ async def export_resume_pdf(
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e))
 
-    filename = f"{headline.replace(' ', '_')}.pdf"
+    # RFC 5987: encode filename for non-ASCII characters (Chinese names)
+    ascii_fallback = quote(headline.replace(" ", "_"), safe="") + ".pdf"
+    encoded_filename = quote(filename) if (filename := f"{headline.replace(' ', '_')}.pdf") else ascii_fallback
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={
+            "Content-Disposition": f"attachment; filename=\"{ascii_fallback}\"; filename*=UTF-8''{encoded_filename}",
+        },
     )

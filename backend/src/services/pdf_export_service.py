@@ -73,6 +73,7 @@ async def render_resume_pdf(content: dict, headline: str = "Resume") -> bytes:
     # Ensure all expected fields exist
     template_data = {
         "headline": normalize_text_for_ats(headline),
+        "contact": normalized.get("contact", {}),
         "summary": normalized.get("summary", ""),
         "skills": normalized.get("skills", []),
         "experiences": normalized.get("experiences", []),

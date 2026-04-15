@@ -19,12 +19,12 @@ export function Dashboard() {
   const navigate = useNavigate();
 
   const statCards = [
-    { label: "目标岗位", value: stats?.role_count ?? 0, icon: Target, color: "text-blue-500" },
-    { label: "活跃简历", value: stats?.resume_count ?? 0, icon: FileText, color: "text-green-500" },
-    { label: "高优 Gap", value: stats?.high_priority_gap_count ?? 0, icon: BarChart3, color: "text-orange-500" },
-    { label: "最近成果", value: stats?.recent_achievement_count ?? 0, icon: Trophy, color: "text-purple-500" },
-    { label: "待确认建议", value: stats?.pending_suggestion_count ?? 0, icon: Bell, color: "text-red-500" },
-    { label: "面试故事", value: stats?.story_count ?? 0, icon: BookOpen, color: "text-teal-500" },
+    { label: "目标岗位", value: stats?.role_count ?? 0, icon: Target, color: "text-blue-500", href: "/roles" },
+    { label: "活跃简历", value: stats?.resume_count ?? 0, icon: FileText, color: "text-green-500", href: "/resumes" },
+    { label: "高优 Gap", value: stats?.high_priority_gap_count ?? 0, icon: BarChart3, color: "text-orange-500", href: "/gaps" },
+    { label: "最近成果", value: stats?.recent_achievement_count ?? 0, icon: Trophy, color: "text-purple-500", href: "/achievements" },
+    { label: "待确认建议", value: stats?.pending_suggestion_count ?? 0, icon: Bell, color: "text-red-500", href: "/suggestions" },
+    { label: "面试故事", value: stats?.story_count ?? 0, icon: BookOpen, color: "text-teal-500", href: "/stories" },
   ];
 
   return (
@@ -38,7 +38,11 @@ export function Dashboard() {
             {/* Stats grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               {statCards.map((stat) => (
-                <div key={stat.label} className="rounded-lg border bg-card p-4">
+                <div
+                  key={stat.label}
+                  onClick={() => navigate(stat.href)}
+                  className="cursor-pointer rounded-lg border bg-card p-4 hover:shadow-md transition-shadow"
+                >
                   <div className="flex items-center gap-2">
                     <stat.icon className={`h-4 w-4 ${stat.color}`} />
                     <span className="text-sm text-muted-foreground">{stat.label}</span>

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useRef, useEffect, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -22,8 +22,13 @@ import {
   Play,
   Pencil,
   Save,
+  ChevronDown,
+  FileSearch,
+  Zap,
 } from "lucide-react";
 import type { RoleCreateRequest } from "@/types";
+import { CreateRoleFromJD } from "@/components/CreateRoleFromJD";
+import { CreateRoleQuick } from "@/components/CreateRoleQuick";
 
 const ROLE_TYPES = [
   "全职",
@@ -44,6 +49,23 @@ export function Roles() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [editRoleId, setEditRoleId] = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showJDModal, setShowJDModal] = useState(false);
+  const [showQuickModal, setShowQuickModal] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    if (showDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showDropdown]);
 
   const roles = data?.items ?? [];
 
@@ -65,13 +87,41 @@ export function Roles() {
               </span>
             )}
           </h3>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            新增岗位
-          </button>
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              新增岗位
+              <ChevronDown className="h-3.5 w-3.5" />
+            </button>
+            {showDropdown && (
+              <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-md border bg-card shadow-lg">
+                <button
+                  onClick={() => { setShowDropdown(false); setShowCreateModal(true); }}
+                  className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-muted transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  手动创建
+                </button>
+                <button
+                  onClick={() => { setShowDropdown(false); setShowJDModal(true); }}
+                  className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-muted transition-colors"
+                >
+                  <FileSearch className="h-4 w-4" />
+                  粘贴 JD 创建
+                </button>
+                <button
+                  onClick={() => { setShowDropdown(false); setShowQuickModal(true); }}
+                  className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-muted transition-colors"
+                >
+                  <Zap className="h-4 w-4" />
+                  快捷创建
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Content */}
@@ -170,6 +220,16 @@ export function Roles() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* JD Paste Modal */}
+        {showJDModal && (
+          <CreateRoleFromJD onClose={() => setShowJDModal(false)} />
+        )}
+
+        {/* Quick Create Modal */}
+        {showQuickModal && (
+          <CreateRoleQuick onClose={() => setShowQuickModal(false)} />
         )}
       </PageContainer>
     </>

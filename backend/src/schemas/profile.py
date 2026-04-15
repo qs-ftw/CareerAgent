@@ -20,6 +20,7 @@ class CandidateProfileUpsert(BaseModel):
     location: dict[str, Any] = Field(default_factory=dict, description="Location preferences")
     preferences: dict[str, Any] = Field(default_factory=dict, description="Work style preferences")
     constraints: dict[str, Any] = Field(default_factory=dict, description="Hard constraints (visa, remote, etc.)")
+    contact: dict[str, Any] = Field(default_factory=dict, description="Contact info: email, phone, linkedin_url, github_url, portfolio_url, location")
 
 
 class CandidateProfileResponse(BaseModel):
@@ -34,6 +35,7 @@ class CandidateProfileResponse(BaseModel):
     location: dict[str, Any]
     preferences: dict[str, Any]
     constraints: dict[str, Any]
+    contact: dict[str, Any]
     created_at: datetime
     updated_at: datetime
 

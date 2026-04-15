@@ -99,6 +99,26 @@ async def get_resume(
     return _to_response(resume, version)
 
 
+async def delete_resume(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    resume_id: uuid.UUID,
+) -> None:
+    """Soft-delete a resume."""
+    stmt = select(Resume).where(
+        Resume.id == resume_id,
+        Resume.user_id == user_id,
+        Resume.deleted_at.is_(None),
+    )
+    result = await session.execute(stmt)
+    resume = result.scalar_one_or_none()
+    if resume is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Resume not found")
+    resume.deleted_at = datetime.now(UTC)
+    await session.flush()
+
+
 async def update_resume(
     session: AsyncSession,
     user_id: uuid.UUID,
@@ -124,20 +144,30 @@ async def update_resume(
 
     # If content is provided, create a new version.
     if "content" in update_map and update_map["content"] is not None:
-        new_content = update_map["content"]
-        if isinstance(new_content, dict):
-            content_payload = new_content
-        else:
-            content_payload = (
-                new_content
-                if isinstance(new_content, dict)
-                else ResumeContent(**new_content).model_dump()
-            )
+        # Use exclude_unset to get ONLY the fields the client actually sent.
+        # Without this, Pydantic fills in defaults (empty strings/lists) for
+        # omitted fields, and the merge would overwrite existing data with blanks.
+        content_payload = data.content.model_dump(exclude_unset=True)
 
         # Fetch the current latest version to determine the next version number.
         ver_result = await session.execute(_latest_version_stmt(resume.id))
         latest_version = ver_result.scalar_one_or_none()
         next_version_no = (latest_version.version_no + 1) if latest_version else 1
+
+        # Deep-merge with existing version content so partial updates don't lose data
+        if latest_version and latest_version.content_json:
+            existing = latest_version.content_json
+            merged = {**existing, **content_payload}
+            # Recursively merge nested dicts (like contact)
+            for key in merged:
+                if (
+                    key in existing
+                    and key in content_payload
+                    and isinstance(existing[key], dict)
+                    and isinstance(content_payload[key], dict)
+                ):
+                    merged[key] = {**existing[key], **content_payload[key]}
+            content_payload = merged
 
         new_version = ResumeVersion(
             resume_id=resume.id,
@@ -202,6 +232,46 @@ async def list_versions(
         }
         for v in versions
     ]
+
+
+async def get_version(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    resume_id: uuid.UUID,
+    version_id: uuid.UUID,
+) -> dict | None:
+    """Return a single version with its full content, or None."""
+    # Verify ownership
+    stmt = select(Resume).where(
+        Resume.id == resume_id,
+        Resume.user_id == user_id,
+        Resume.deleted_at.is_(None),
+    )
+    result = await session.execute(stmt)
+    resume = result.scalar_one_or_none()
+    if resume is None:
+        return None
+
+    ver_stmt = select(ResumeVersion).where(
+        ResumeVersion.id == version_id,
+        ResumeVersion.resume_id == resume_id,
+    )
+    ver_result = await session.execute(ver_stmt)
+    version = ver_result.scalar_one_or_none()
+    if version is None:
+        return None
+
+    return {
+        "id": str(version.id),
+        "version_no": version.version_no,
+        "content": version.content_json or {},
+        "generated_by": version.generated_by,
+        "source_type": version.source_type,
+        "summary_note": version.summary_note,
+        "completeness_score": version.completeness_score,
+        "match_score": version.match_score,
+        "created_at": version.created_at.isoformat() if version.created_at else None,
+    }
 
 
 async def delete_version(
@@ -274,6 +344,8 @@ async def create_resume_for_role(
     target_role_id: uuid.UUID,
     initial_content: ResumeContent,
     role_skills: list[str] | None = None,
+    role_name: str | None = None,
+    profile_contact: dict | None = None,
 ) -> ResumeResponse:
     """Create a new master resume for a given role with its first version.
 
@@ -284,14 +356,20 @@ async def create_resume_for_role(
     else:
         content_dict = dict(initial_content)
 
+    # Auto-fill contact from profile if resume has no contact info
+    if profile_contact and not content_dict.get("contact"):
+        content_dict["contact"] = profile_contact
+
     completeness = _calc_completeness(content_dict)
     match_score = _calc_match_score(content_dict, role_skills or [])
+
+    resume_name = f"{role_name} - 主简历" if role_name else "主简历"
 
     resume = Resume(
         workspace_id=workspace_id,
         user_id=user_id,
         target_role_id=target_role_id,
-        resume_name="Master Resume",
+        resume_name=resume_name,
         resume_type="master",
         parent_resume_id=None,
         current_version_no=1,

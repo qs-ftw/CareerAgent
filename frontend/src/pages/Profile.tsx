@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
 import { useProfile, useProfileCompleteness, useUpsertProfile } from "@/hooks/useProfile";
-import type { ProfileUpsertRequest } from "@/types";
+import type { ProfileUpsertRequest, ProfileContact } from "@/types";
+
+const EMPTY_CONTACT: ProfileContact = {
+  email: "",
+  phone: "",
+  linkedin_url: "",
+  github_url: "",
+  portfolio_url: "",
+  location: "",
+};
 
 export function Profile() {
   const { data: profile, isLoading } = useProfile();
@@ -16,6 +25,7 @@ export function Profile() {
     location: {},
     preferences: {},
     constraints: {},
+    contact: { ...EMPTY_CONTACT },
   });
 
   const [superInput, setSuperInput] = useState("");
@@ -32,6 +42,7 @@ export function Profile() {
         location: profile.location ?? {},
         preferences: profile.preferences ?? {},
         constraints: profile.constraints ?? {},
+        contact: { ...EMPTY_CONTACT, ...(profile.contact ?? {}) },
       });
     }
   }, [profile]);
@@ -42,6 +53,13 @@ export function Profile() {
 
   const handleSave = () => {
     upsert.mutate(form);
+  };
+
+  const updateContact = (field: keyof ProfileContact, value: string) => {
+    setForm((prev) => ({
+      ...prev,
+      contact: { ...(prev.contact ?? EMPTY_CONTACT), [field]: value },
+    }));
   };
 
   const addSuperpower = () => {
@@ -61,6 +79,15 @@ export function Profile() {
       superpowers: (prev.superpowers ?? []).filter((_, i) => i !== idx),
     }));
   };
+
+  const contactFields: { key: keyof ProfileContact; label: string; placeholder: string }[] = [
+    { key: "email", label: "邮箱", placeholder: "you@example.com" },
+    { key: "phone", label: "电话", placeholder: "+86 138-xxxx-xxxx" },
+    { key: "linkedin_url", label: "LinkedIn", placeholder: "https://linkedin.com/in/..." },
+    { key: "github_url", label: "GitHub", placeholder: "https://github.com/..." },
+    { key: "portfolio_url", label: "作品集", placeholder: "https://..." },
+    { key: "location", label: "地区", placeholder: "北京" },
+  ];
 
   return (
     <div className="p-6 space-y-6">
@@ -136,6 +163,26 @@ export function Profile() {
                 x
               </button>
             </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Contact Info */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">联系方式</label>
+        <p className="text-xs text-muted-foreground">保存后，生成简历时会自动填充联系方式</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {contactFields.map((f) => (
+            <div key={f.key}>
+              <label className="mb-1 block text-xs text-muted-foreground">{f.label}</label>
+              <input
+                type="text"
+                className="w-full rounded-md border px-3 py-1.5 text-sm"
+                value={form.contact?.[f.key] ?? ""}
+                onChange={(e) => updateContact(f.key, e.target.value)}
+                placeholder={f.placeholder}
+              />
+            </div>
           ))}
         </div>
       </div>
