@@ -35,3 +35,15 @@ export function useUpdateGap() {
     },
   });
 }
+
+export function useDeleteGap() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await gapApi.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["gaps"] });
+    },
+  });
+}

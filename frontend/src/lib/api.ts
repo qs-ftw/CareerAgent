@@ -74,6 +74,7 @@ export const gapApi = {
   byRole: (roleId: string) => apiClient.get(`/roles/${roleId}/gaps`),
   update: (id: string, data: unknown) =>
     apiClient.patch(`/gaps/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/gaps/${id}`),
 };
 
 // ── JD APIs ────────────────────────────────────────────
@@ -135,10 +136,18 @@ export const projectApi = {
 export const storyApi = {
   list: (params?: Record<string, string>) =>
     apiClient.get("/stories", { params }),
+  get: (id: string, params?: Record<string, string>) =>
+    apiClient.get(`/stories/${id}`, { params }),
+  create: (data: unknown) =>
+    apiClient.post("/stories", data),
   rebuild: (achievementId: string) =>
     apiClient.post(`/stories/rebuild/${achievementId}`),
   update: (id: string, data: unknown) =>
     apiClient.patch(`/stories/${id}`, data),
+  consult: (id: string, user_message?: string, resume_id?: string) =>
+    apiClient.post(`/stories/${id}/consult`, { user_message, resume_id }),
+  autopilot: (id: string, resume_id?: string) =>
+    apiClient.post(`/stories/${id}/autopilot`, null, { params: { resume_id } }),
 };
 
 // ── Dashboard APIs ─────────────────────────────────────
@@ -147,4 +156,103 @@ export const dashboardApi = {
   recentJdDecisions: () => apiClient.get("/dashboard/recent-jd-decisions"),
   roleSummaries: () => apiClient.get("/dashboard/role-summaries"),
   highPriorityGaps: () => apiClient.get("/dashboard/high-priority-gaps"),
+};
+
+// ── Coach APIs ────────────────────────────────────────
+export const coachApi = {
+  latestAssessment: () => apiClient.get("/coach/assessment/latest"),
+  listAssessments: () => apiClient.get("/coach/assessments"),
+  refreshAssessment: () => apiClient.post("/coach/assessment/refresh"),
+
+  // Context Items
+  listContextItems: () =>
+    apiClient.get("/coach/context-items"),
+  createContextItem: (data: unknown) =>
+    apiClient.post("/coach/context-items", data),
+  updateContextItem: (id: string, data: unknown) =>
+    apiClient.patch(`/coach/context-items/${id}`, data),
+
+  // Tasks
+  listTasks: (itemId: string) =>
+    apiClient.get(`/coach/context-items/${itemId}/tasks`),
+  createTask: (itemId: string, data: unknown) =>
+    apiClient.post(`/coach/context-items/${itemId}/tasks`, data),
+  updateTask: (taskId: string, data: unknown) =>
+    apiClient.patch(`/coach/tasks/${taskId}`, data),
+
+  // Progress Entries
+  listProgressEntries: (itemId: string) =>
+    apiClient.get(`/coach/context-items/${itemId}/progress`),
+  createProgressEntry: (itemId: string, data: unknown) =>
+    apiClient.post(`/coach/context-items/${itemId}/progress`, data),
+  updateProgressEntry: (entryId: string, data: unknown) =>
+    apiClient.patch(`/coach/progress/${entryId}`, data),
+};
+
+// ── Knowledge APIs ─────────────────────────────────────
+export const knowledgeApi = {
+  // Domain endpoints
+  listDomains: (resumeId?: string) =>
+    apiClient.get("/knowledge/domains", { params: { resume_id: resumeId } }),
+  createDomain: (data: unknown) =>
+    apiClient.post("/knowledge/domains", data),
+  updateDomain: (id: string, data: unknown) =>
+    apiClient.patch(`/knowledge/domains/${id}`, data),
+  deleteDomain: (id: string) =>
+    apiClient.delete(`/knowledge/domains/${id}`),
+
+  // Question endpoints
+  listQuestions: (domainId: string) =>
+    apiClient.get(`/knowledge/domains/${domainId}/questions`),
+  createQuestion: (domainId: string, data: unknown) =>
+    apiClient.post(`/knowledge/domains/${domainId}/questions`, data),
+  updateQuestion: (id: string, data: unknown) =>
+    apiClient.patch(`/knowledge/questions/${id}`, data),
+  deleteQuestion: (id: string) =>
+    apiClient.delete(`/knowledge/questions/${id}`),
+
+  // Resume linking endpoints
+  listResumeDomains: (resumeId: string) =>
+    apiClient.get(`/knowledge/resumes/${resumeId}/domains`),
+  linkResumeDomains: (resumeId: string, domainIds: string[]) =>
+    apiClient.post(`/knowledge/resumes/${resumeId}/domains`, { domain_ids: domainIds }),
+};
+
+// ── Personal OKR APIs ───────────────────────────────────
+export const okrApi = {
+  // Objectives
+  listObjectives: () =>
+    apiClient.get<import("@/types").PersonalObjective[]>("/okr/objectives"),
+  getObjective: (id: string) =>
+    apiClient.get<import("@/types").PersonalObjective>(`/okr/objectives/${id}`),
+  createObjective: (data: import("@/types").PersonalObjectiveCreate) =>
+    apiClient.post<import("@/types").PersonalObjective>("/okr/objectives", data),
+  updateObjective: (id: string, data: import("@/types").PersonalObjectiveUpdate) =>
+    apiClient.patch<import("@/types").PersonalObjective>(`/okr/objectives/${id}`, data),
+  deleteObjective: (id: string) =>
+    apiClient.delete(`/okr/objectives/${id}`),
+
+  // Key Results
+  createKeyResult: (objectiveId: string, data: import("@/types").PersonalKeyResultCreate) =>
+    apiClient.post<import("@/types").PersonalKeyResult>(`/okr/objectives/${objectiveId}/key-results`, data),
+  updateKeyResult: (krId: string, data: import("@/types").PersonalKeyResultUpdate) =>
+    apiClient.patch<import("@/types").PersonalKeyResult>(`/okr/key-results/${krId}`, data),
+  deleteKeyResult: (krId: string) =>
+    apiClient.delete(`/okr/key-results/${krId}`),
+
+  // Suggestions
+  getWeeklySuggestions: () =>
+    apiClient.post<import("@/types").WeeklyActionSuggestionsResponse>("/okr/weekly-suggestions"),
+};
+
+// ── Weekly Review APIs ──────────────────────────────────
+export const weeklyReviewApi = {
+  list: () =>
+    apiClient.get<import("@/types").WeeklyReview[]>("/coach/weekly-reviews"),
+  get: (id: string) =>
+    apiClient.get<import("@/types").WeeklyReview>(`/coach/weekly-reviews/${id}`),
+  generate: (data: import("@/types").WeeklyReviewGenerateRequest) =>
+    apiClient.post<import("@/types").WeeklyReview>("/coach/weekly-reviews/generate", data),
+  update: (id: string, data: import("@/types").WeeklyReviewUpdate) =>
+    apiClient.patch<import("@/types").WeeklyReview>(`/coach/weekly-reviews/${id}`, data),
 };

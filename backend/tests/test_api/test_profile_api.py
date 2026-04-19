@@ -24,14 +24,18 @@ async def test_upsert_profile_creates_profile():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
         response = await client.put("/api/profile", json={
+            "name": "Qiuwu",
             "headline": "API Test Engineer",
-            "superpowers": ["Testing", "CI/CD"],
-            "proof_points": [{"name": "TestProject", "metric": "99% coverage"}],
+            "professional_summary": "Focus on testing and CI/CD.",
+            "skill_categories": {
+                "Strengths": ["Testing", "CI/CD"],
+            },
         })
     assert response.status_code == 200
     data = response.json()
+    assert data["name"] == "Qiuwu"
     assert data["headline"] == "API Test Engineer"
-    assert len(data["superpowers"]) == 2
+    assert data["skill_categories"]["Strengths"] == ["Testing", "CI/CD"]
 
 
 @pytest.mark.asyncio

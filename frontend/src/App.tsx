@@ -9,10 +9,15 @@ import { GapBoard } from "@/pages/GapBoard";
 import { Guide } from "@/pages/Guide";
 import { Resumes } from "@/pages/Resumes";
 import { Profile } from "@/pages/Profile";
+import { StoryBank } from "@/pages/StoryBank";
+import { StoryWorkspace } from "@/pages/StoryWorkspace";
+import { KnowledgeBank } from "@/pages/KnowledgeBank";
+import { KnowledgeDetail } from "@/pages/KnowledgeDetail";
 import { CareerPortfolio } from "@/pages/CareerPortfolio";
 import { Overview } from "@/pages/CareerPortfolio/Overview";
 import { CompanyDetail } from "@/pages/CareerPortfolio/CompanyDetail";
 import { ProjectDetail } from "@/pages/CareerPortfolio/ProjectDetail";
+import { PerformanceCoach } from "@/pages/PerformanceCoach";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,8 +42,13 @@ export default function App() {
               <Route path="/resumes" element={<Resumes />} />
               <Route path="/resumes/:id" element={<ResumeDetail />} />
               <Route path="/gaps" element={<GapBoard />} />
+              <Route path="/stories" element={<StoryBank />} />
+              <Route path="/stories/:id" element={<StoryWorkspace />} />
+              <Route path="/knowledge" element={<KnowledgeBank />} />
+              <Route path="/knowledge/:id" element={<KnowledgeDetail />} />
               <Route path="/guide" element={<Guide />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/coach" element={<PerformanceCoach />} />
               <Route path="/portfolio" element={<CareerPortfolio />}>
                 <Route index element={<Overview />} />
                 <Route path="project/:projectId" element={<ProjectDetail />} />

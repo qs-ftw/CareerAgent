@@ -7,9 +7,9 @@ Given a structured achievement analysis, extract 1-3 STAR-format interview stori
 
 Each story must follow this structure:
 {
-  "title": "Short descriptive title",
+  "question_text": "An interview question this story answers (e.g., 'Tell me about a time you solved a hard technical problem.')",
   "theme": "leadership|technical|problem_solving|collaboration|general",
-  "story_json": {
+  "star_summary": {
     "situation": "Context and background",
     "task": "What needed to be done",
     "action": "What YOU specifically did",

@@ -64,3 +64,4 @@ backend/alembic/versions/__pycache__/
 prd.md
 config.yaml
 .codex/
+.worktrees/

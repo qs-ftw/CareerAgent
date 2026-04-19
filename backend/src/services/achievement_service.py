@@ -10,13 +10,18 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.achievement import Achievement, AchievementRoleMatch
-from src.models.profile import CareerProfile
 from src.models.agent import AgentRun, UpdateSuggestion
 from src.models.gap import GapItem
+from src.models.profile import CareerProfile
 from src.models.resume import Resume, ResumeVersion
 from src.models.story import InterviewStory
 from src.models.target_role import RoleCapabilityModel, TargetRole
-from src.schemas.achievement import AchievementCreate, AchievementResponse, AchievementUpdate, _UNSET
+from src.schemas.achievement import (
+    _UNSET,
+    AchievementCreate,
+    AchievementResponse,
+    AchievementUpdate,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +107,7 @@ async def delete_achievement(
         return False
 
     # Delete related records first to avoid FK violations
-    from src.models.achievement import AchievementRoleMatch, AchievementResumeLink
+    from src.models.achievement import AchievementResumeLink, AchievementRoleMatch
     from src.models.agent import UpdateSuggestion
 
     for Model in (AchievementRoleMatch, AchievementResumeLink):
@@ -473,12 +478,11 @@ async def persist_pipeline_results(
         story = InterviewStory(
             workspace_id=workspace_id,
             user_id=user_id,
-            title=candidate.get("title", achievement.title),
+            question_text=candidate.get("question_text") or candidate.get("title") or achievement.title,
             theme=candidate.get("theme", "general"),
-            source_type="achievement",
-            source_ref_id=achievement_id,
-            story_json=candidate.get("story_json", {}),
-            best_for_json=candidate.get("best_for", []),
+            status="draft",
+            linked_achievement_ids=[str(achievement_id)],
+            star_summary=candidate.get("star_summary") or candidate.get("story_json") or {},
             confidence_score=candidate.get("confidence_score", 0.0),
         )
         session.add(story)

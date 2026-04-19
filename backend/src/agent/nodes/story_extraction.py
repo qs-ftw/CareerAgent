@@ -59,9 +59,9 @@ async def story_extraction(state: CareerAgentState) -> dict:
 
         candidates = [
             {
-                "title": f"{title} - 面试故事",
+                "question_text": f"Tell me about your experience with: {title}",
                 "theme": "general",
-                "story_json": {
+                "star_summary": {
                     "situation": summary[:200] if summary else "",
                     "task": "",
                     "action": ", ".join(str(p) for p in tech_points[:3]),

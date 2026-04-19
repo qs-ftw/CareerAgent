@@ -331,12 +331,13 @@ export interface UpdateSuggestion {
 
 export interface InterviewStory {
   id: string;
-  title: string;
+  question_text: string;
+  answer_markdown: string | null;
   theme: string;
-  source_type: string;
-  source_ref_id?: string;
-  story_json: Record<string, unknown>;
-  best_for_json: string[];
+  status: "empty" | "drafting" | "finalized";
+  linked_achievement_ids: string[];
+  analysis_chat: Array<{ role: string; content: string; [key: string]: any }>;
+  star_summary: Record<string, any>;
   confidence_score: number;
   created_at: string;
   updated_at: string;
@@ -398,4 +399,311 @@ export interface InteractiveGenerateResponse {
   tags: string[];
   importance_score: number;
   suggestions: Array<{ suggestion: string; category: string }>;
+}
+
+// ── Coach ─────────────────────────────────────────────
+
+export interface CapabilityDimensionAssessment {
+  level: string;
+  status: "proven" | "partial" | "unproven";
+  summary: string;
+  evidence_count: number;
+}
+
+export interface CapabilityEvidenceLink {
+  source_type: string;
+  source_id: string;
+  title: string;
+  summary: string;
+  dimensions: string[];
+}
+
+export interface CapabilityAssessment {
+  id: string;
+  profile_id: string;
+  assessment_scope: string;
+  status: "pending" | "completed" | "failed";
+  core_level: string;
+  core_reasoning_markdown: string;
+  dimension_levels: Record<string, CapabilityDimensionAssessment>;
+  evidence_links: CapabilityEvidenceLink[];
+  next_level_gaps: string[];
+  suggested_actions: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+// ── Knowledge ──────────────────────────────────────────
+
+export interface KnowledgeDomain {
+  id: string;
+  name: string;
+  tags_json: string[];
+  question_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface KnowledgeDomainCreateRequest {
+  name: string;
+  tags_json: string[];
+}
+
+export interface KnowledgeDomainUpdateRequest {
+  name?: string;
+  tags_json?: string[];
+}
+
+export interface KnowledgeQuestion {
+  id: string;
+  domain_id: string;
+  question_text: string;
+  answer_markdown: string | null;
+  is_pinned: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface KnowledgeQuestionCreateRequest {
+  question_text: string;
+  answer_markdown?: string;
+}
+
+export interface KnowledgeQuestionUpdateRequest {
+  question_text?: string;
+  answer_markdown?: string;
+  is_pinned?: boolean;
+  sort_order?: number;
+}
+
+export interface ResumeDomainLinkRequest {
+  domain_ids: string[];
+}
+
+// ── Performance Coach ──────────────────────────────────
+
+export interface PerformanceContextItem {
+  id: string;
+  profile_id: string;
+  title: string;
+  summary: string;
+  status: "active" | "archived" | "completed";
+  linked_work_experience_id: string | null;
+  linked_project_ids: string[];
+  linked_achievement_ids: string[];
+  dimension_hints_json: Record<string, any>;
+  priority: "low" | "medium" | "high";
+  start_date: string | null;
+  target_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PerformanceContextItemCreate {
+  title: string;
+  summary?: string;
+  status?: string;
+  linked_work_experience_id?: string | null;
+  linked_project_ids?: string[];
+  linked_achievement_ids?: string[];
+  dimension_hints_json?: Record<string, any>;
+  priority?: string;
+  start_date?: string | null;
+  target_date?: string | null;
+}
+
+export interface PerformanceContextItemUpdate {
+  title?: string;
+  summary?: string;
+  status?: string;
+  linked_work_experience_id?: string | null;
+  linked_project_ids?: string[];
+  linked_achievement_ids?: string[];
+  dimension_hints_json?: Record<string, any>;
+  priority?: string;
+  start_date?: string | null;
+  target_date?: string | null;
+}
+
+export interface PerformanceTask {
+  id: string;
+  context_item_id: string;
+  title: string;
+  description: string;
+  status: "todo" | "in_progress" | "done";
+  due_date: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PerformanceTaskCreate {
+  title: string;
+  description?: string;
+  status?: string;
+  due_date?: string | null;
+  sort_order?: number;
+}
+
+export interface PerformanceTaskUpdate {
+  title?: string;
+  description?: string;
+  status?: string;
+  due_date?: string | null;
+  sort_order?: number;
+}
+
+export interface PerformanceProgressEntry {
+  id: string;
+  context_item_id: string;
+  title: string;
+  details_markdown: string;
+  status: string;
+  result_summary: string;
+  metrics_json: Record<string, any>;
+  linked_project_id: string | null;
+  linked_achievement_ids: string[];
+  dimension_evidence_json: Record<string, any>;
+  occurred_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PerformanceProgressEntryCreate {
+  title: string;
+  details_markdown?: string;
+  status?: string;
+  result_summary?: string;
+  metrics_json?: Record<string, any>;
+  linked_project_id?: string | null;
+  linked_achievement_ids?: string[];
+  dimension_evidence_json?: Record<string, any>;
+  occurred_at?: string | null;
+}
+
+export interface PerformanceProgressEntryUpdate {
+  title?: string;
+  details_markdown?: string;
+  status?: string;
+  result_summary?: string;
+  metrics_json?: Record<string, any>;
+  linked_project_id?: string | null;
+  linked_achievement_ids?: string[];
+  dimension_evidence_json?: Record<string, any>;
+  occurred_at?: string | null;
+}
+
+// ── Personal OKR ──────────────────────────────────────────
+
+export interface PersonalKeyResult {
+  id: string;
+  objective_id: string;
+  title: string;
+  result_definition: string;
+  status: string;
+  progress_value_json: Record<string, any>;
+  linked_context_item_ids: string[];
+  linked_evidence_ids: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PersonalObjective {
+  id: string;
+  profile_id: string;
+  title: string;
+  summary: string;
+  status: string;
+  target_core_level: string | null;
+  linked_dimensions_json: string[];
+  key_results: PersonalKeyResult[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PersonalObjectiveCreate {
+  title: string;
+  summary?: string;
+  status?: string;
+  target_core_level?: string | null;
+  linked_dimensions_json?: string[];
+}
+
+export interface PersonalObjectiveUpdate {
+  title?: string;
+  summary?: string;
+  status?: string;
+  target_core_level?: string | null;
+  linked_dimensions_json?: string[];
+}
+
+export interface PersonalKeyResultCreate {
+  title: string;
+  result_definition?: string;
+  status?: string;
+  progress_value_json?: Record<string, any>;
+  linked_context_item_ids?: string[];
+  linked_evidence_ids?: string[];
+}
+
+export interface PersonalKeyResultUpdate {
+  title?: string;
+  result_definition?: string;
+  status?: string;
+  progress_value_json?: Record<string, any>;
+  linked_context_item_ids?: string[];
+  linked_evidence_ids?: string[];
+}
+
+export interface WeeklyActionSuggestion {
+  title: string;
+  description: string;
+  priority: string;
+  related_okr_id?: string;
+  related_kr_id?: string;
+}
+
+export interface WeeklyActionSuggestionsResponse {
+  suggestions: WeeklyActionSuggestion[];
+  reasoning: string;
+}
+
+// ── Weekly Review ─────────────────────────────────────
+
+export interface WeeklyReview {
+  id: string;
+  profile_id: string;
+  week_start: string;
+  week_end: string;
+  manager_report_markdown: string;
+  self_reflection_markdown: string;
+  new_evidence_json: any[];
+  suggested_next_actions_json: any[];
+  assessment_snapshot_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WeeklyReviewCreate {
+  week_start: string;
+  week_end: string;
+  manager_report_markdown?: string;
+  self_reflection_markdown?: string;
+  new_evidence_json?: any[];
+  suggested_next_actions_json?: any[];
+  assessment_snapshot_id?: string | null;
+}
+
+export interface WeeklyReviewUpdate {
+  manager_report_markdown?: string;
+  self_reflection_markdown?: string;
+  new_evidence_json?: any[];
+  suggested_next_actions_json?: any[];
+  assessment_snapshot_id?: string | null;
+}
+
+export interface WeeklyReviewGenerateRequest {
+  week_start: string;
+  week_end: string;
 }

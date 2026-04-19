@@ -7,17 +7,20 @@ import {
   BarChart3,
   FileText,
   CheckCircle2,
-  Circle,
   ArrowRight,
   Sparkles,
   Upload,
+  ChevronRight,
 } from "lucide-react";
+import { Header } from "@/components/layout/Header";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { useProfileCompleteness } from "@/hooks/useProfile";
 import { useWorkExperiences } from "@/hooks/useWorkExperiences";
 import { useProjects } from "@/hooks/useProjects";
 import { useAchievements } from "@/hooks/useAchievements";
 import { useRoles } from "@/hooks/useRoles";
 import { useListResumes } from "@/hooks/useResumes";
+import { cn } from "@/lib/utils";
 
 interface StepStatus {
   done: boolean;
@@ -67,7 +70,7 @@ function useStepStatuses(): StepStatus[] {
 const steps = [
   {
     icon: UserCircle,
-    title: "完善候选人画像",
+    title: "完善个人画像",
     desc: "上传简历 PDF 自动提取个人信息，或手动填写姓名、联系方式、专业技能等基础资料。",
     tip: "导入简历一键搞定，省去手动填写",
     tipIcon: Upload,
@@ -134,94 +137,108 @@ export function Guide() {
   const progressPct = Math.round((totalDone / steps.length) * 100);
 
   return (
-    <div className="overflow-y-auto p-6 max-w-3xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">新手指南</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          六步完成从信息录入到简历生成的完整流程
-        </p>
-        {/* Progress bar */}
-        <div className="mt-4 flex items-center gap-3">
-          <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full bg-primary transition-all duration-500"
-              style={{ width: `${progressPct}%` }}
-            />
+    <div className="flex flex-col h-full bg-white">
+      <Header 
+        title="新手指南" 
+        description="六步完成从信息录入到简历生成的完整流程"
+      />
+      <PageContainer className="max-w-4xl">
+        {/* Progress summary */}
+        <div className="notion-card p-6 bg-notion-warm-white mb-10 flex items-center justify-between">
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-foreground">配置进度</h3>
+            <p className="text-xs text-notion-gray-500 font-medium">
+              完成全部步骤以解锁 CareerAgent 的完整能力
+            </p>
           </div>
-          <span className="text-xs font-medium text-muted-foreground">
-            {totalDone}/{steps.length} 已完成
-          </span>
-        </div>
-      </div>
-
-      {/* Steps */}
-      <div className="relative space-y-4">
-        {/* Connecting line */}
-        <div className="absolute left-5 top-6 bottom-6 w-px bg-border" />
-
-        {steps.map((step, i) => {
-          const status = statuses[i];
-          const Icon = step.icon;
-          const TipIcon = step.tipIcon;
-
-          return (
-            <div
-              key={i}
-              className="relative flex gap-4"
-            >
-              {/* Step indicator */}
-              <div className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 ${
-                status.done
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-muted-foreground"
-              }`}>
-                {status.done ? (
-                  <CheckCircle2 className="h-5 w-5" />
-                ) : (
-                  <span className="text-sm font-semibold">{i + 1}</span>
-                )}
-              </div>
-
-              {/* Card */}
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <span className="text-2xl font-bold tracking-tight">{totalDone}/{steps.length}</span>
+            </div>
+            <div className="h-2 w-32 rounded-full bg-white overflow-hidden border border-border">
               <div
-                className={`group flex-1 rounded-lg border bg-card p-4 transition-shadow hover:shadow-sm ${
-                  status.done ? "opacity-80" : ""
-                }`}
+                className="h-full bg-notion-blue rounded-full transition-all duration-700"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Steps */}
+        <div className="relative space-y-8">
+          {/* Vertical path */}
+          <div className="absolute left-6 top-10 bottom-10 w-0.5 bg-notion-warm-white hidden sm:block" />
+
+          {steps.map((step, i) => {
+            const status = statuses[i];
+            const Icon = step.icon;
+            const TipIcon = step.tipIcon;
+
+            return (
+              <div
+                key={i}
+                className="relative flex flex-col sm:flex-row gap-6 group"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-md ${step.bg}`}>
-                      <Icon className={`h-4 w-4 ${step.color}`} />
+                {/* Step indicator */}
+                <div className={cn(
+                  "relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300",
+                  status.done
+                    ? "border-notion-blue bg-notion-blue text-white shadow-notion-card"
+                    : "border-border bg-white text-notion-gray-300"
+                )}>
+                  {status.done ? (
+                    <CheckCircle2 className="h-6 w-6" />
+                  ) : (
+                    <span className="text-lg font-bold tracking-tight">{i + 1}</span>
+                  )}
+                </div>
+
+                {/* Card */}
+                <div
+                  className={cn(
+                    "notion-card flex-1 p-6 transition-all hover:-translate-y-0.5 cursor-pointer",
+                    status.done ? "opacity-75 grayscale-[0.5] hover:grayscale-0" : "hover:border-notion-blue/30"
+                  )}
+                  onClick={() => navigate(step.href)}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={cn("p-2 rounded-md", step.bg)}>
+                        <Icon className={cn("h-5 w-5", step.color)} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg tracking-tight-card group-hover:text-notion-blue transition-colors">
+                          {step.title}
+                        </h3>
+                        <p className={cn("text-xs font-bold notion-pill", 
+                          status.done ? "bg-green-50 text-green-700" : "bg-notion-warm-white text-notion-gray-500"
+                        )}>
+                          {status.detail}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium text-sm">{step.title}</h3>
-                      <p className="text-xs text-muted-foreground">{status.detail}</p>
+                    <ChevronRight className="h-5 w-5 text-notion-gray-300 group-hover:text-notion-blue transition-colors" />
+                  </div>
+
+                  <p className="text-sm font-medium text-notion-gray-500 leading-relaxed mb-4">
+                    {step.desc}
+                  </p>
+
+                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
+                    <div className="notion-pill bg-notion-badge-bg text-notion-badge-text border border-notion-blue/5 flex items-center gap-1.5">
+                      <TipIcon className="h-3 w-3" />
+                      {step.tip}
+                    </div>
+                    <div className="text-xs font-bold text-notion-blue opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+                      立即开始 <ArrowRight className="h-3 w-3" />
                     </div>
                   </div>
-                  <button
-                    onClick={() => navigate(step.href)}
-                    className="flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 hover:bg-primary/10 transition-all"
-                  >
-                    前往
-                    <ArrowRight className="h-3 w-3" />
-                  </button>
-                </div>
-
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                  {step.desc}
-                </p>
-
-                {/* Tip badge */}
-                <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-primary/5 px-2 py-0.5 text-xs text-primary">
-                  <TipIcon className="h-3 w-3" />
-                  {step.tip}
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </PageContainer>
     </div>
   );
 }

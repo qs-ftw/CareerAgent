@@ -58,9 +58,14 @@ class CareerAgentState(TypedDict, total=False):
     career_markdown: str | None                   # exported CV as Markdown for LLM
 
     # ------------------------------------------------------------------
-    # Story extraction
+    # Story extraction & consultation
     # ------------------------------------------------------------------
     story_candidates: list[dict[str, Any]] | None
+    story_id: str | None
+    question_text: str | None
+    answer_markdown: str | None
+    consultant_feedback: str | None
+    autopilot_result: dict[str, Any] | None
 
     # ------------------------------------------------------------------
     # Shared outputs (written by agent nodes)

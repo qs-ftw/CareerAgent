@@ -25,3 +25,9 @@ agents:
   resume_init: claude-sonnet
   capability_modeling: glm-flash
   explain: glm-flash
+  resume_import: glm-flash
+  interactive_analysis: glm-flash
+  story_consultant: glm-flash
+  story_autopilot: glm-flash
+  performance_coach_assessment: glm-flash
+  personal_okr_weekly_actions: glm-flash

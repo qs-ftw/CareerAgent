@@ -14,7 +14,6 @@ import {
 import {
   Plus,
   Trash2,
-  Eye,
   Loader2,
   Briefcase,
   X,
@@ -27,7 +26,9 @@ import {
   FileSearch,
   Zap,
   FileText,
+  MoreVertical,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { RoleCreateRequest } from "@/types";
 import { CreateRoleFromJD } from "@/components/CreateRoleFromJD";
 import { CreateRoleQuick } from "@/components/CreateRoleQuick";
@@ -77,83 +78,81 @@ export function Roles() {
   };
 
   return (
-    <>
-      <Header title="岗位目标" description="管理所有长期目标岗位" />
-      <PageContainer>
-        {/* Toolbar */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-foreground">
-            岗位列表
-            {data?.total !== undefined && (
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                共 {data.total} 个岗位
-              </span>
-            )}
-          </h3>
+    <div className="flex flex-col h-full bg-white">
+      <Header 
+        title="岗位目标" 
+        description="管理所有长期目标岗位"
+        actions={
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              className="notion-button-primary flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
               新增岗位
               <ChevronDown className="h-3.5 w-3.5" />
             </button>
             {showDropdown && (
-              <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-md border bg-card shadow-lg">
+              <div className="absolute right-0 top-full z-10 mt-1 w-48 notion-card overflow-hidden py-1">
                 <button
                   onClick={() => { setShowDropdown(false); setShowCreateModal(true); }}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-muted transition-colors"
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm font-medium hover:bg-notion-warm-white transition-colors"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4 text-notion-gray-300" />
                   手动创建
                 </button>
                 <button
                   onClick={() => { setShowDropdown(false); setShowJDModal(true); }}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-muted transition-colors"
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm font-medium hover:bg-notion-warm-white transition-colors"
                 >
-                  <FileSearch className="h-4 w-4" />
+                  <FileSearch className="h-4 w-4 text-notion-gray-300" />
                   粘贴 JD 创建
                 </button>
                 <button
                   onClick={() => { setShowDropdown(false); setShowQuickModal(true); }}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-muted transition-colors"
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm font-medium hover:bg-notion-warm-white transition-colors"
                 >
-                  <Zap className="h-4 w-4" />
+                  <Zap className="h-4 w-4 text-notion-gray-300" />
                   快捷创建
                 </button>
               </div>
             )}
           </div>
-        </div>
-
+        }
+      />
+      <PageContainer>
         {/* Content */}
-        <div className="mt-4">
+        <div>
           {isLoading && (
-            <div className="flex items-center justify-center rounded-lg border bg-card p-12">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-muted-foreground">加载中...</span>
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-notion-blue" />
             </div>
           )}
 
           {isError && (
-            <div className="flex items-center justify-center rounded-lg border border-red-200 bg-red-50 p-12">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              <span className="ml-2 text-red-600">加载失败，请稍后重试</span>
+            <div className="notion-card border-red-100 bg-red-50 p-12 text-center">
+              <AlertTriangle className="mx-auto h-10 w-10 text-red-500 mb-4" />
+              <p className="text-red-700 font-bold">加载失败，请重试</p>
             </div>
           )}
 
           {!isLoading && !isError && roles.length === 0 && (
-            <div className="rounded-lg border bg-card p-8 text-center">
-              <Briefcase className="mx-auto h-12 w-12 text-muted-foreground/50" />
-              <p className="mt-4 text-muted-foreground">
-                暂无岗位目标。点击「新增岗位」开始添加。
+            <div className="notion-card bg-notion-warm-white/50 border-dashed p-16 text-center">
+              <Briefcase className="mx-auto h-16 w-16 text-notion-gray-300 mb-6" />
+              <p className="text-notion-gray-500 font-bold text-lg tracking-tight">
+                暂无岗位目标
               </p>
+              <p className="text-sm text-notion-gray-300 mt-2 mb-8">
+                开始添加你的第一个职业目标
+              </p>
+              <button onClick={() => setShowQuickModal(true)} className="notion-button-primary">
+                快速开始
+              </button>
             </div>
           )}
 
           {!isLoading && !isError && roles.length > 0 && (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {roles.map((role) => (
                 <RoleCard
                   key={role.id}
@@ -204,16 +203,16 @@ export function Roles() {
 
         {/* Delete Confirmation */}
         {deleteConfirmId && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="w-full max-w-sm rounded-lg bg-card p-6 shadow-xl">
-              <h3 className="text-lg font-semibold">确认删除</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/5backdrop-blur-sm">
+            <div className="w-full max-w-sm notion-card p-6 shadow-notion-deep">
+              <h3 className="text-lg font-bold tracking-tight-card">确认删除岗位</h3>
+              <p className="mt-2 text-sm font-medium text-notion-gray-500">
                 确定要删除该岗位吗？此操作不可撤销。
               </p>
-              <div className="mt-4 flex justify-end gap-3">
+              <div className="mt-6 flex justify-end gap-3">
                 <button
                   onClick={() => setDeleteConfirmId(null)}
-                  className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+                  className="notion-button-secondary"
                 >
                   取消
                 </button>
@@ -224,12 +223,12 @@ export function Roles() {
                     });
                   }}
                   disabled={deleteRole.isPending}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                  className="bg-red-500 text-white px-4 py-2 rounded-sm text-sm font-bold hover:bg-red-600 transition-colors flex items-center gap-2"
                 >
                   {deleteRole.isPending && (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   )}
-                  删除
+                  确认删除
                 </button>
               </div>
             </div>
@@ -246,7 +245,7 @@ export function Roles() {
           <CreateRoleQuick onClose={() => setShowQuickModal(false)} />
         )}
       </PageContainer>
-    </>
+    </div>
   );
 }
 
@@ -276,113 +275,135 @@ function RoleCard({
   onTailor: () => void;
   tailoring: boolean;
 }) {
-  const statusColor =
-    role.status === "active"
-      ? "bg-green-100 text-green-700"
-      : role.status === "paused"
-        ? "bg-yellow-100 text-yellow-700"
-        : "bg-gray-100 text-gray-500";
+  const [showActions, setShowActions] = useState(false);
+  const actionRef = useRef<HTMLDivElement>(null);
 
-  const statusLabel =
-    role.status === "active" ? "进行中" : role.status === "paused" ? "已暂停" : "已删除";
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (actionRef.current && !actionRef.current.contains(e.target as Node)) {
+        setShowActions(false);
+      }
+    }
+    if (showActions) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showActions]);
 
   return (
-    <div className="group flex flex-col rounded-lg border bg-card p-5 hover:shadow-md transition-shadow">
+    <div 
+      onClick={onView}
+      className="notion-card group p-5 flex flex-col h-full hover:-translate-y-1 cursor-pointer transition-all active:scale-[0.98]"
+    >
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between mb-4">
         <div className="min-w-0 flex-1">
-          <h4 className="truncate text-base font-semibold text-foreground">
+          <h4 className="truncate text-lg font-bold text-foreground group-hover:text-notion-blue transition-colors leading-tight tracking-tight">
             {role.role_name}
           </h4>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="notion-pill bg-notion-badge-bg text-notion-badge-text">
               {role.role_type}
             </span>
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor}`}
+              className={cn("notion-pill", 
+                role.status === "active" ? "bg-green-50 text-green-700" : "bg-notion-warm-white text-notion-gray-300"
+              )}
             >
-              {statusLabel}
+              {role.status === "active" ? "活跃" : "已暂停"}
             </span>
           </div>
         </div>
-        <div className="ml-2 flex items-center gap-1 text-xs text-muted-foreground">
-          <span className="font-medium">
-            P{role.priority}
-          </span>
-          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-primary"
-              style={{ width: `${Math.min(role.priority * 10, 100)}%` }}
-            />
-          </div>
+        <div className="relative ml-2" ref={actionRef}>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowActions(!showActions);
+            }}
+            className="p-1 rounded-md hover:bg-notion-warm-white text-notion-gray-300 transition-colors"
+          >
+            <MoreVertical className="h-5 w-5" />
+          </button>
+          {showActions && (
+            <div className="absolute right-0 top-full z-10 mt-1 w-32 notion-card overflow-hidden py-1 shadow-notion-deep">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowActions(false); onEdit(); }}
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-xs font-bold hover:bg-notion-warm-white transition-colors"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                编辑
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowActions(false); onPause(); }}
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-xs font-bold hover:bg-notion-warm-white transition-colors"
+              >
+                {role.status === "active" ? <><Pause className="h-3.5 w-3.5" /> 暂停</> : <><Play className="h-3.5 w-3.5" /> 恢复</>}
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowActions(false); onDelete(); }}
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                删除
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Skills */}
-      <div className="mt-3 flex-1">
-      {role.required_skills.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {role.required_skills.slice(0, 5).map((skill) => (
-            <span
-              key={skill}
-              className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-            >
-              {skill}
-            </span>
-          ))}
-          {role.required_skills.length > 5 && (
-            <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-              +{role.required_skills.length - 5}
-            </span>
-          )}
+      <div className="flex-1 space-y-3">
+        {role.required_skills.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {role.required_skills.slice(0, 4).map((skill) => (
+              <span
+                key={skill}
+                className="notion-pill bg-notion-warm-white text-notion-gray-500 font-bold"
+              >
+                {skill}
+              </span>
+            ))}
+            {role.required_skills.length > 4 && (
+              <span className="notion-pill bg-notion-warm-white text-notion-gray-300 font-bold">
+                +{role.required_skills.length - 4}
+              </span>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold text-notion-gray-300 uppercase tracking-widest">优先级 P{role.priority}</span>
+            <div className="h-1 w-12 rounded-full bg-notion-warm-white overflow-hidden">
+              <div 
+                className="h-full bg-notion-blue" 
+                style={{ width: `${role.priority * 10}%` }} 
+              />
+            </div>
+          </div>
         </div>
-      )}
       </div>
 
-      {/* Actions */}
-      <div className="mt-4 flex items-center justify-end gap-2 border-t pt-3">
+      {/* Main Actions - Keep prominent but clean */}
+      <div className="mt-6 pt-4 border-t border-border flex items-center gap-2">
         <button
-          onClick={onEdit}
-          className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-          编辑
-        </button>
-        <button
-          onClick={onPause}
-          className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors"
-        >
-          {role.status === "active" ? (
-            <><Pause className="h-3.5 w-3.5" /> 暂停</>
-          ) : (
-            <><Play className="h-3.5 w-3.5" /> 恢复</>
-          )}
-        </button>
-        <button
-          onClick={onDelete}
-          className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-          删除
-        </button>
-        <button
-          onClick={onTailor}
+          onClick={(e) => {
+            e.stopPropagation();
+            onTailor();
+          }}
           disabled={tailoring}
-          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 notion-button-primary py-1.5 text-xs font-bold disabled:opacity-50"
         >
           {tailoring ? (
-            <><span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" /> 生成中...</>
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
-            <><FileText className="h-3.5 w-3.5" /> 定制简历</>
+            <FileText className="h-3.5 w-3.5" />
           )}
+          定制简历
         </button>
-        <button
-          onClick={onView}
-          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          <Eye className="h-3.5 w-3.5" />
-          查看详情
-        </button>
+        <div className="text-[10px] font-bold text-notion-gray-300 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pr-1">
+          点击查看
+        </div>
       </div>
     </div>
   );
@@ -449,91 +470,92 @@ function EditRoleInlineModal({
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <Loader2 className="h-6 w-6 animate-spin text-white" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/5backdrop-blur-sm">
+        <Loader2 className="h-6 w-6 animate-spin text-notion-blue" />
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-lg rounded-lg bg-card p-6 shadow-xl">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">编辑岗位</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/5backdrop-blur-sm">
+      <div className="w-full max-w-lg notion-card p-8 shadow-notion-deep">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold tracking-tight-card">编辑岗位</h3>
           <button
             onClick={onClose}
-            className="rounded-md p-1 hover:bg-muted transition-colors"
+            className="notion-button-secondary p-1"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          <div>
-            <label className="block text-sm font-medium">岗位名称</label>
-            <input
-              type="text"
-              required
-              value={form.role_name}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, role_name: e.target.value }))
-              }
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
-            />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-notion-gray-500 uppercase tracking-wider">岗位名称</label>
+              <input
+                type="text"
+                required
+                value={form.role_name}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, role_name: e.target.value }))
+                }
+                className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-notion-blue/20"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-notion-gray-500 uppercase tracking-wider">岗位类型</label>
+              <select
+                value={form.role_type}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, role_type: e.target.value }))
+                }
+                className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-notion-blue/20"
+              >
+                {ROLE_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium">岗位类型</label>
-            <select
-              value={form.role_type}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, role_type: e.target.value }))
-              }
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
-            >
-              {ROLE_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">岗位描述</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-notion-gray-500 uppercase tracking-wider">岗位描述</label>
             <textarea
               value={form.description ?? ""}
               onChange={(e) =>
                 setForm((f) => ({ ...f, description: e.target.value }))
               }
               rows={3}
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+              className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-notion-blue/20 resize-none"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium">核心技能</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-notion-gray-500 uppercase tracking-wider">核心技能</label>
             <input
               type="text"
               value={skillsInput}
               onChange={(e) => setSkillsInput(e.target.value)}
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
+              className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-notion-blue/20"
               placeholder="用逗号分隔"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium">关键词</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-notion-gray-500 uppercase tracking-wider">关键词</label>
             <input
               type="text"
               value={keywordsInput}
               onChange={(e) => setKeywordsInput(e.target.value)}
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
+              className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-notion-blue/20"
               placeholder="用逗号分隔"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium">
-              优先级: <span className="text-primary font-bold">{form.priority ?? 5}</span>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-notion-gray-500 uppercase tracking-wider flex justify-between">
+              优先级 <span>{form.priority ?? 5}</span>
             </label>
             <input
               type="range"
@@ -544,32 +566,28 @@ function EditRoleInlineModal({
               onChange={(e) =>
                 setForm((f) => ({ ...f, priority: Number(e.target.value) }))
               }
-              className="mt-1 w-full accent-primary"
+              className="w-full accent-notion-blue"
             />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>0 - 低</span>
-              <span>10 - 高</span>
-            </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+              className="notion-button-secondary"
             >
               取消
             </button>
             <button
               type="submit"
               disabled={updateRole.isPending}
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              className="notion-button-primary flex items-center gap-2 disabled:opacity-50"
             >
               {updateRole.isPending && (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               )}
-              <Save className="h-3.5 w-3.5" />
-              保存
+              <Save className="h-4 w-4" />
+              保存更改
             </button>
           </div>
         </form>
@@ -617,98 +635,87 @@ function CreateRoleModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-lg rounded-lg bg-card p-6 shadow-xl">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">新增岗位</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/5backdrop-blur-sm">
+      <div className="w-full max-w-lg notion-card p-8 shadow-notion-deep">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold tracking-tight-card">新增岗位</h3>
           <button
             onClick={onClose}
-            className="rounded-md p-1 hover:bg-muted transition-colors"
+            className="notion-button-secondary p-1"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          {/* 岗位名称 */}
-          <div>
-            <label className="block text-sm font-medium">
-              岗位名称 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={form.role_name}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, role_name: e.target.value }))
-              }
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
-              placeholder="例如：高级前端工程师"
-            />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-notion-gray-500 uppercase tracking-wider">岗位名称</label>
+              <input
+                type="text"
+                required
+                value={form.role_name}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, role_name: e.target.value }))
+                }
+                className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-notion-blue/20"
+                placeholder="例如：高级前端工程师"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-notion-gray-500 uppercase tracking-wider">岗位类型</label>
+              <select
+                value={form.role_type}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, role_type: e.target.value }))
+                }
+                className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-notion-blue/20"
+              >
+                {ROLE_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          {/* 岗位类型 */}
-          <div>
-            <label className="block text-sm font-medium">
-              岗位类型 <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={form.role_type}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, role_type: e.target.value }))
-              }
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
-            >
-              {ROLE_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* 岗位描述 */}
-          <div>
-            <label className="block text-sm font-medium">岗位描述</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-notion-gray-500 uppercase tracking-wider">岗位描述</label>
             <textarea
               value={form.description ?? ""}
               onChange={(e) =>
                 setForm((f) => ({ ...f, description: e.target.value }))
               }
               rows={3}
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+              className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-notion-blue/20 resize-none"
               placeholder="描述该岗位的主要职责和要求..."
             />
           </div>
 
-          {/* 核心技能 */}
-          <div>
-            <label className="block text-sm font-medium">核心技能</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-notion-gray-500 uppercase tracking-wider">核心技能</label>
             <input
               type="text"
               value={skillsInput}
               onChange={(e) => setSkillsInput(e.target.value)}
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
-              placeholder="用逗号分隔，例如：React, TypeScript, Node.js"
+              className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-notion-blue/20"
+              placeholder="用逗号分隔"
             />
           </div>
 
-          {/* 关键词 */}
-          <div>
-            <label className="block text-sm font-medium">关键词</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-notion-gray-500 uppercase tracking-wider">关键词</label>
             <input
               type="text"
               value={keywordsInput}
               onChange={(e) => setKeywordsInput(e.target.value)}
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
-              placeholder="用逗号分隔，例如：全栈, 远程, 初创"
+              className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-notion-blue/20"
+              placeholder="用逗号分隔"
             />
           </div>
 
-          {/* 优先级 */}
-          <div>
-            <label className="block text-sm font-medium">
-              优先级: <span className="text-primary font-bold">{form.priority ?? 5}</span>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-notion-gray-500 uppercase tracking-wider flex justify-between">
+              优先级 <span>{form.priority ?? 5}</span>
             </label>
             <input
               type="range"
@@ -719,30 +726,27 @@ function CreateRoleModal({
               onChange={(e) =>
                 setForm((f) => ({ ...f, priority: Number(e.target.value) }))
               }
-              className="mt-1 w-full accent-primary"
+              className="w-full accent-notion-blue"
             />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>0 - 低</span>
-              <span>10 - 高</span>
-            </div>
           </div>
 
-          {/* Submit */}
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+              className="notion-button-secondary"
             >
               取消
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              className="notion-button-primary flex items-center gap-2 disabled:opacity-50"
             >
-              {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              创建
+              {isSubmitting && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              立即创建
             </button>
           </div>
         </form>

@@ -86,3 +86,22 @@ async def update_gap(
     await session.flush()
     await session.refresh(gap)
     return _to_response(gap)
+
+
+async def delete_gap(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    gap_id: uuid.UUID,
+) -> bool:
+    """Delete a gap item. Returns True if deleted, False if not found."""
+    stmt = select(GapItem).where(
+        GapItem.id == gap_id,
+        GapItem.user_id == user_id,
+    )
+    result = await session.execute(stmt)
+    gap = result.scalar_one_or_none()
+    if gap is None:
+        return False
+    await session.delete(gap)
+    await session.flush()
+    return True

@@ -6,16 +6,16 @@ from unittest.mock import patch
 import pytest
 
 
-def test_load_config_finds_file():
-    """load_config should parse config.yaml and resolve env vars."""
-    with patch.dict(os.environ, {"GLM_API_KEY": "test-key", "ANTHROPIC_API_KEY": "test-key2"}):
+def test_load_config_uses_embedded_defaults():
+    """load_config should resolve the embedded default config when no file exists."""
+    with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         from src.core.llm import load_config
 
         config = load_config()
         assert "models" in config
         assert "agents" in config
-        assert config["models"]["glm-flash"]["api_key"] == "test-key"
-        assert config["models"]["claude-sonnet"]["api_key"] == "test-key2"
+        assert config["models"]["default-openai"]["api_key"] == "test-key"
+        assert config["agents"]["achievement_analysis"] == "default-openai"
 
 
 def test_load_config_env_var_resolution():
@@ -29,17 +29,17 @@ def test_load_config_env_var_resolution():
         assert result["nested"]["url"] == "http://resolved-value/path"
 
 
-def test_load_config_missing_env_var_raises():
-    """Missing env var should raise a clear error."""
+def test_load_config_missing_env_var_keeps_placeholder():
+    """Missing env vars should keep the placeholder string for later inspection."""
     from src.core.llm import _resolve_env_vars
 
-    with pytest.raises(ValueError, match="NONEXISTENT_KEY"):
-        _resolve_env_vars({"key": "${NONEXISTENT_KEY}"})
+    result = _resolve_env_vars({"key": "${NONEXISTENT_KEY}"})
+    assert result["key"] == "${NONEXISTENT_KEY}"
 
 
 def test_get_llm_unknown_agent_raises():
     """get_llm with unknown agent name should raise with helpful message."""
-    with patch.dict(os.environ, {"GLM_API_KEY": "test", "ANTHROPIC_API_KEY": "test"}):
+    with patch.dict(os.environ, {"OPENAI_API_KEY": "test"}):
         from src.core.llm import get_llm, reload_config
 
         reload_config()
@@ -49,7 +49,7 @@ def test_get_llm_unknown_agent_raises():
 
 def test_get_llm_returns_chat_model():
     """get_llm should return a ChatOpenAI instance for openai_compatible provider."""
-    with patch.dict(os.environ, {"GLM_API_KEY": "test-key", "ANTHROPIC_API_KEY": "test-key"}):
+    with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         from langchain_openai import ChatOpenAI
 
         from src.core.llm import get_llm, reload_config
@@ -59,16 +59,16 @@ def test_get_llm_returns_chat_model():
         assert isinstance(llm, ChatOpenAI)
 
 
-def test_get_llm_anthropic_provider():
-    """get_llm should return a ChatAnthropic instance for anthropic provider."""
-    with patch.dict(os.environ, {"GLM_API_KEY": "test", "ANTHROPIC_API_KEY": "test-key"}):
-        from langchain_anthropic import ChatAnthropic
+def test_get_llm_resume_update_uses_default_openai_provider():
+    """resume_update should use the embedded default OpenAI-compatible model."""
+    with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
+        from langchain_openai import ChatOpenAI
 
         from src.core.llm import get_llm, reload_config
 
         reload_config()
         llm = get_llm("resume_update")
-        assert isinstance(llm, ChatAnthropic)
+        assert isinstance(llm, ChatOpenAI)
 
 
 def test_default_config_when_file_missing():

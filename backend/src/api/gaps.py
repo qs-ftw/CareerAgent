@@ -59,3 +59,19 @@ async def list_gaps_for_role(
     """Return all gap items associated with a target role."""
     user_id = await get_current_user_id()
     return await gap_service.list_gaps_for_role(db, user_id, role_id)
+
+
+@router.delete(
+    "/gaps/{gap_id}",
+    summary="Delete a gap",
+    status_code=204,
+)
+async def delete_gap(
+    gap_id: uuid.UUID = Path(..., description="The gap UUID"),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Delete a gap item."""
+    user_id = await get_current_user_id()
+    deleted = await gap_service.delete_gap(db, user_id, gap_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Gap not found")

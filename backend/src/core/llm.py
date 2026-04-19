@@ -44,9 +44,11 @@ _DEFAULT_CONFIG: dict = {
         "keyword_verification": "default-openai",
         "resume_init": "default-openai",
         "capability_modeling": "default-openai",
+        "performance_coach_assessment": "default-openai",
         "explain": "default-openai",
         "resume_import": "default-openai",
         "interactive_analysis": "default-openai",
+        "personal_okr_weekly_actions": "default-openai",
     },
 }
 

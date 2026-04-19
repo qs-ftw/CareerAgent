@@ -18,6 +18,11 @@ from src.models.skill import SkillEntity
 from src.models.target_role import RoleCapabilityModel, TargetRole
 from src.models.user import User
 from src.models.workspace import Workspace, WorkspaceMember
+from src.models.capability_assessment import CapabilityAssessmentSnapshot
+from src.models.coach_context import PerformanceContextItem, PerformanceTask, PerformanceProgressEntry
+from src.models.knowledge import KnowledgeDomain, KnowledgeQuestion, ResumeDomainLink
+from src.models.personal_okr import PersonalObjective, PersonalKeyResult
+from src.models.weekly_review import WeeklyReviewRun
 
 __all__ = [
     "User",
@@ -41,4 +46,14 @@ __all__ = [
     "Education",
     "Project",
     "InterviewStory",
+    "CapabilityAssessmentSnapshot",
+    "PerformanceContextItem",
+    "PerformanceTask",
+    "PerformanceProgressEntry",
+    "KnowledgeDomain",
+    "KnowledgeQuestion",
+    "ResumeDomainLink",
+    "PersonalObjective",
+    "PersonalKeyResult",
+    "WeeklyReviewRun",
 ]

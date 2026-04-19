@@ -49,7 +49,7 @@ export function ProjectModal({
     const data: Record<string, unknown> = {
       name: form.name,
       description: form.description,
-      url: form.url || null,
+      url: form.url || "",
       work_experience_id: form.work_experience_id || null,
       education_id: form.education_id || null,
       tech_stack: form.tech_stack
